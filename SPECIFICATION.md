@@ -489,7 +489,13 @@ The first example uses a tuple to assign the values of `x` and `y` from another 
 We can uses guards in pattern matching to simplify what would be complex `if` statements:
 
 ```
+match <binding>
+| <pat1> when <expr1> -> <expr2>
+| <pat2> when <expr3> -> <expr4>
+| <pat2> when <expr5> -> <expr6>
 ```
+
+This says, if the first pattern matches, and `expr1` evaluates to `True`, execute `expr2`. Otherwise, continue down the list of patterns and guards until one matches.
 
 We can also use a technique often referred to as an "as-pattern" to match components of an object, and the entire object itself:
 
