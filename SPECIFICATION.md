@@ -15,6 +15,31 @@ printLn "Hello, world!" # This is also a comment!
 
 ## Basic Types
 
+#### Type Annotations
+
+In many of the examples in this document, you will see something that looks like the following:
+
+```
+# - :: Int = 42
+```
+
+Or even
+
+```
+# foo :: Int = 42
+```
+
+Both of these lines are type annotations. The `#` tells us that the line is a comment, the rest of the line is formatted like so:
+
+```
+# Name :: Type = Value
+```
+
+- `Name` is the name of the binding to which the annotation refers, if the `Name` is `-` that means the binding was unnamed, as in the first example. The name of the binding in the second example is `foo`.
+- The `::` separates the `Name` of the binding, and its `Type`.
+- The `Type` section tells us the type of the binding, in both examples above the type is `Int`. A type of `Int -> Int -> Int` tells us that the binding is a function which accepts two parameters which are of type `Int` and has a return value of type `Int`. Another type we might encounter is: `Int -> Int -> (Int -> Bool) -> Int`. This function accepts three arguments: the first two are `Int`s and the third is a function which takes an `Int` and returns a `Bool`.
+- The `= Value` tells us the value of the binding. In the above examples the values of the `Int` bindings are both `42`.
+
 #### Int
 
 `Int`s in Iris are signed integer values. These values can be added, subtracted, multiplied, and divided in the expected ways.
@@ -23,16 +48,16 @@ Examples:
 
 ```
 1 + 2
-# - :: int = 3
+# - :: Int = 3
 
 4 - 2
-# - :: int = 2
+# - :: Int = 2
 
 3 * 3
-# - :: int = 9
+# - :: Int = 9
 
 10 / 3
-# - :: int = 3
+# - :: Int = 3
 ```
 
 Note, that the `/` operator, when called with two `Int` arguments, returns an `Int` rather than a `Float`. There is not currently a built-in function which takes two `Int` arguments and returns a `Float`, although such a function may be added in a future release.
@@ -41,10 +66,10 @@ Iris also provides the power and modulo operators:
 
 ```
 2 ** 4
-# - :: int = 16
+# - :: Int = 16
 
 10 % 3
-# - :: int = 1
+# - :: Int = 1
 ```
 
 `Int`s may also be written using the `_` for clarity. The following example also demonstrates the equality operator (`==`) for the `Int` type.
@@ -402,6 +427,12 @@ type Person = (
 ```
 
 If this looks like a named tuple from earlier, that's because that's exactly what it is, except now the entire tuple has a name -- `Person` in this case.
+
+Now that we have our new `Person` type, let's allocate a `Person`:
+
+```
+
+```
 
 We can also define types that have no special data members, and essentially act as aliases for `()`:
 
