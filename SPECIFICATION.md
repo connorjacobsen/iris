@@ -480,11 +480,11 @@ Pattern matching is like C's `case` statement on steroids. We can use it to dest
 An example of pattern matching with `List`s:
 
 ```
-firstElement(l:[Int], x:Int) =
+firstElement(l:[Int]) =
   match l
   | [] -> None
   | hd : tl -> hd
-# val firstElement :: [Int] -> Int -> Int? = <fn>
+# val firstElement :: [Int] -> Int? = <fn>
 ```
 
 We use `match` to initiate the pattern match, and we declare we are matching on `l`. If `l` is the empty list `[]`, then our function returns `None`; however, if it has 1 or more elements, `hd` will be assigned the value of the first element, and `tl` will be assigned the value of the rest of the list, even if its `[]`. You will notice that the pattern `hd : tl` is the same pattern we would use to prepend a value `hd` to the list `tl`, and this is intentional.
