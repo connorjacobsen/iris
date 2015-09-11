@@ -81,14 +81,11 @@ Examples:
 # - :: Bool = True
 ```
 
-The `Float` modulo and power operators:
+The `Float` power operator:
 
 ```
 2. ** 4.
 # - :: Float = 16.0
-
-10. % 3.
-# - :: Float = 1.0
 ```
 
 The `_` character may also be used to make floating point values more readable:
