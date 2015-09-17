@@ -171,25 +171,25 @@ Examples:
 ```
 # A List of Ints.
 [1, 2, 3]
-# - :: [Int] = [1, 2, 3]
+# - :: [Int] = [1 2 3]
 
 # A List of Bools.
 [True, False, True, True]
-# - :: [Bool] = [True, False, True, True]
+# - :: [Bool] = [True False True True]
 ```
 
 We can prepend values to lists with the `:` operator:
 
 ```
-1 : [2, 3, 4]
-# - :: [Int] = [1, 2, 3, 4]
+1 : [2 3 4]
+# - :: [Int] = [1 2 3 4]
 ```
 
 Placing values inside of the square brackets is really just syntactic sugar for prepending each of the values to empty list. The above list is equivalent to the following:
 
 ```
 1 : 2 : 3 : 4 : []
-# - :: [Int] = [1, 2, 3, 4]
+# - :: [Int] = [1 2 3 4]
 ```
 
 The type of this list is `[Int]`.
@@ -197,8 +197,8 @@ The type of this list is `[Int]`.
 Lists may be concatenated with the `++` operator:
 
 ```
-[1, 2] ++ [3, 4]
-# - :: [Int] = [1, 2, 3, 4]
+[1 2] ++ [3 4]
+# - :: [Int] = [1 2 3 4]
 ```
 
 #### String
