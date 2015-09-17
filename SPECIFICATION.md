@@ -678,8 +678,8 @@ module String exports {
 }
 
 type String = [Char]
-let endsWith(s:String c:Char) = tail(s) == c
-let startsWith(s:String c:Char) = head(s) == c
+fn endsWith(s:String c:Char) = (tail(s) == c)
+fn startsWith(s:String c:Char) = (head(s) == c)
 ```
 
 Export statements usually go at the beginning of the module file, with the code following later.
@@ -748,7 +748,7 @@ With named tuples, a little bit of syntactic sugar, and interfaces we can get mo
 If we have a type `Foo`, and some function `bar` with the following signature
 
 ```
-let bar(foo:Foo)
+fn bar(foo:Foo)
 # val bar :: Foo -> Unit
 ```
 
@@ -768,9 +768,10 @@ Which is equivalent to `bar myFoo` (or `bar(myFoo)` if you want to use parens), 
 Sometimes the compiler does not have enough information to determine the concrete type of a given value. Consider:
 
 ```
-let firstIfTrue(test x y) =
+fn firstIfTrue(test x y) {
   if test(x) then x else y end
-val firstIfTrue :: ('a -> Bool) -> 'a -> 'a -> 'a = <fn>
+}
+# val firstIfTrue :: ('a -> Bool) -> 'a -> 'a -> 'a = <fn>
 ```
 
 The function firstIfTrue takes three arguments: a function `test`, and two values `x` and `y`. The function returns `x` if `test x` evaluates to `True`, and `y` otherwise. There are no obvious clues or arithmetic operators or literals to tell the compiler what the types of `x` and `y` are. It appears that `firstIfTrue` works on values of any type.
@@ -782,17 +783,17 @@ The generic type of this function allows us to use `firstIfTrue` in each of the 
 With `String`s
 
 ```
-let longString s = s.length > 6
+fn longString(s) = s.length > 6
 # val longString :: String -> Bool = <fn>
 
-firstIfTrue longString, "short" "wow this is super long"
+firstIfTrue longString "short" "wow this is super long"
 # - :: String = "wow this is super long"
 ```
 
 And `Int`s
 
 ```
-let bigNum n = n > 10
+fn bigNum(n) = n > 10
 # val bigNum :: Int -> Bool = <fn>
 
 firstIfTrue bigNum 3 7
