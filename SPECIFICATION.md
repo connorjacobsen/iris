@@ -170,11 +170,11 @@ Examples:
 
 ```
 # A List of Ints.
-[1, 2, 3]
+[1 2 3]
 # - :: [Int] = [1 2 3]
 
 # A List of Bools.
-[True, False, True, True]
+[True False True True]
 # - :: [Bool] = [True False True True]
 ```
 
@@ -219,6 +219,8 @@ All of the standard `List` operations also work for Strings:
 
 The `Map` type is a key-value type, delimited by curly brackets. The types of the keys and values must be consistent.
 
+Maps require commas between
+
 Example:
 
 ```
@@ -246,89 +248,74 @@ Functions are first-class types in Iris.
 Here is a very simple Iris function:
 
 ```
-let addOne(x:Int) = x + 1
+fn addOne(x) = x + 1
 # val addOne :: Int -> Int = <fn>
 ```
 
-Since functions are first-class values, we declare them just like we do bindings (more on those later). The `let` keyword declares a binding. The name immediately after the `let` is the name of the function, and any other identifiers before the `=` are the arguments to the function. For now, these parameters will need type annotations, but in the future the compiler should be able to infer most function types based on their usage in the function. However, annotations will still be permitted.
+Since functions are first-class values, we declare them just like we do bindings (more on those later). The `fn` keyword declares a function binding. The name immediately after the `fn` is the name of the function. If a function is a single line, an `=` may separate the function signature from the function body.
 
 ```
-let add(x:Int, y:Int) = x + y
-# val add :: Int -> Int -> Int = <fn>
+fn add(x y) = x + y
+# val add :: Num -> Num -> Num = <fn>
 ```
-
-Function definitions in Iris can be overloaded, so even with the above `add` method, we can also define the following:
-
-```
-let add(x:Float, y:Float) = x + y
-# val add :: Float -> Float -> Float = <fn>
-```
-
-Iris will be able to tell the difference between the two based on the types of the arguments supplied to the function.
 
 We can also define anonymous functions on the fly:
 
 ```
-fn(x:Int, y:Int) -> x + y
-# - :: Int -> Int -> Int = <fn>
+fn (x y) = x + y
+# - :: Num -> Num -> Num = <fn>
 ```
 
-Anonymous functions behave very much like named functions. Like named functions, we can pass parameters to them:
+Anonymous functions behave very much like named functions. Like named functions, we can pass parameters to them (if we really wanted to):
 
 ```
-(fn(x:Int) -> x + 1) 4
+(fn (x) = x + 1) 4
 # - :: Int = 5
-```
-
-They can also be assigned to bindings:
-
-```
-let addOne (fn(x:Int) -> x + 1)
-# val addOne :: Int -> Int = <fn>
 ```
 
 This function syntax also allows for named arguments for "free":
 
 ```
-let add(x:Int, y:Int) = x + y
-# val add :: Int -> Int -> Int = <fn>
+fn add(x y) = x + y
+# val add :: Num -> Num -> Num = <fn>
 
-add(y:3, x:4)
+add(y:3 x:4)
 # - :: Int = 7
 ```
 
 If we call the function without the names, Iris will assign the argument values based on order:
 
 ```
-let add(x:Int, y:Int) = x + y
-# val add :: Int -> Int -> Int = <fn>
+fn add(x y) = x + y
+# val add :: Num -> Num -> Num = <fn>
 
-add(3, 4)
+add(3 4)
 # - :: Int = 7
 ```
 
 Another nice feature of the function syntax, is that we can use pattern matching to destructure the arguments (more on pattern matching later):
 
 ```
-let add((x1:Int, y1:Int), (x2:Int, y2:Int)) = (x1 + x2, y1 + y2)
-# val add :: (Int, Int) -> (Int, Int) -> (Int, Int) = <fn>
+fn add((x1 y1) (x2 y2)) = (x1 + x2 y1 + y2)
+# val add :: (Num Num) -> (Num Num) -> (Num Num) = <fn>
 ```
 
 We can even define infix operators as functions if we surround the function name with parenthesis:
 
 ```
-let (!+)((x1:Int, y1:Int), (x2:Int, y2:Int)) = (x1 + x2, y1 + y2)
-# val !+ :: (Int, Int) -> (Int, Int) -> (Int, Int) = <fn>
+let (!+)((x1 y1) (x2 y2)) = (x1 + x2 y1 + y2)
+# val !+ :: (Num Num) -> (Num Num) -> (Num Num) = <fn>
 ```
 
-Functions can be exited early with the `return` keyword, otherwise they will return the value of the last evaluated expression. For example, consider the (contrived) following:
+Functions can be exited early with the `return` keyword, otherwise they will return the value of the last evaluated expression. For example, consider the following:
 
 ```
-let div(x:Int, y:Int) {
+fn div(x y) {
   if y == 0 then return 0
+
   x / y
 }
-# val div :: Int -> Int -> Int = <fn>
+# val div :: Num -> Num -> Num = <fn>
 ```
 
 Notice in the above example, the function body spans multiple lines. This is equally as valid as the single line version, and the compiler will use the indentation to know when the function body ends. Please also not the above example is not considered good Iris code, but it does illustrate the use of `return`.
@@ -338,17 +325,18 @@ You will also notice the use of `{}` for this multi-line function body. When fun
 We can also specify a function argument as an optional argument by prefixing the argument name with a `?`. The following example also includes a `?` appended to the type annotation which specifies an option type, as well as including a match statement. It is okay if these constructs look foreign, we will cover them later:
 
 ```
-let concat(sep:String?, x:String, y:String) =
+fn concat(sep x y) {
   match sep
   | None -> x ++ y
   | _ -> x ++ sep! ++ y
+}
 # val concat :: String? -> String -> String -> String = <fn>
 ```
 
 By default, all arguments to a function are passed as copies, and thus are immutable. In order to access the original object, we have to declare the argument to be mutable with the keyword `mut` in the function signature:
 
 ```
-let getOlder(mut p:Person) = p.age += 1
+fn getOlder(mut p:Person) = p.age += 1
 # val getOlder :: &Person -> Int = <fn>
 ```
 
@@ -372,22 +360,22 @@ For example, `42` is equivalent to `(42)`:
 Elements of a tuple are contiguous in memory, and can be accessed quickly by their indexes with square bracket notation:
 
 ```
-(1, 2., True, "four")[0]
+(1 2. True "four")[0]
 # - :: Int = 1
 
-(1, 2., True, "four")[3]
+(1 2. True "four")[3]
 # - :: [Char] = "four"
 ```
 
-The type of the above tuple is: `(Int, Float, Bool, [Char])`.
+The type of the above tuple is: `(Int Float Bool [Char])`.
 
 Since the size and type of tuples are decidable at compile-time, the compiler is able to catch index-out-of-bounds errors.
 
 Tuple elements may also be named, and the values of the named fields may be accessed by their names:
 
 ```
-person = (name: "Connor", age: 22)
-# val person :: (name: [Char], age: Int) = ("Connor", 22)
+person = (name: "Connor" age: 22)
+# val person :: (name: [Char] age: Int) = ("Connor" 22)
 
 person.name
 # - :: [Char] = "Connor"
@@ -399,8 +387,8 @@ person.age
 Since functions are first-class values in Iris, they may also be the value of a named tuple field:
 
 ```
-person = (name: "Connor", sayHello: (fn "Hello, my name is " ++ name ++ "!"))
-# val person :: (name: [Char], sayHello: () -> [Char]) = ("Connor", <fn>)
+person = (name: "Connor" sayHello: (fn "Hello, my name is " ++ name ++ "!"))
+# val person :: (name: [Char] sayHello: () -> [Char]) = ("Connor" <fn>)
 ```
 
 #### Unit
@@ -417,13 +405,12 @@ type Buffer = [Int]
 
 Here we have defined a new type, `Buffer` which is a `List` of `Int`s. We may now define functions for our new `Buffer` type, and these functions treat a `Buffer` as a `List` of `Int`s.
 
+This does not mean that `Buffer` is a list of `Int` values. It defines a new type, which in this situation is made up of a list of `Int`s.
+
 What if we want a more complex type? Iris allows us to do that too.
 
 ```
-type Person = (
-  name:[Char],
-  age:Int
-)
+type Person = (name:[Char] age:Int)
 ```
 
 If this looks like a named tuple from earlier, that's because that's exactly what it is, except now the entire tuple has a name -- `Person` in this case.
@@ -431,10 +418,11 @@ If this looks like a named tuple from earlier, that's because that's exactly wha
 Now that we have our new `Person` type, let's allocate a `Person`:
 
 ```
-
+fn newPerson(n a) = Person(name:n age:a)
+# newPerson :: [Char] -> Int -> Person = <fn>
 ```
 
-We can also define types that have no special data members, and essentially act as aliases for `()`:
+We can also define types that have no special data members, and have `Unit` on the right side of the `=`, signifying that the type carries no extra information:
 
 ```
 # defining some lexical token types
@@ -450,7 +438,7 @@ Iris variant types are sort of like union types in C. Take the following example
 type Number = Int | Float | Uint
 ```
 
-Based on this declaration, we know that `Number` may refer to either an `Int` or a `Float`, but it may refer to only one of the two at any given time. We cannot declare a `Number`, fill it with an `Int` and then treat it like a `Float`. However, if the binding it mutable, we can rebind the name to a `Float` later on.
+Based on this declaration, we know that `Number` may refer to either an `Int` or a `Float`, but it may refer to only one of the two at any given time. We cannot declare a `Number`, fill it with an `Int` and then treat it like a `Float`. However, if the binding is mutable, we can rebind the name to a `Float` later on.
 
 ## Conditionals
 
@@ -480,11 +468,12 @@ Pattern matching is like C's `case` statement on steroids. We can use it to dest
 An example of pattern matching with `List`s:
 
 ```
-firstElement(l:[Int]) =
+fn firstElement(l) {
   match l
   | [] -> None
   | hd : tl -> hd
-# val firstElement :: [Int] -> Int? = <fn>
+}
+# val firstElement :: ['a] -> 'a? = <fn>
 ```
 
 We use `match` to initiate the pattern match, and we declare we are matching on `l`. If `l` is the empty list `[]`, then our function returns `None`; however, if it has 1 or more elements, `hd` will be assigned the value of the first element, and `tl` will be assigned the value of the rest of the list, even if its `[]`. You will notice that the pattern `hd : tl` is the same pattern we would use to prepend a value `hd` to the list `tl`, and this is intentional.
@@ -492,10 +481,11 @@ We use `match` to initiate the pattern match, and we declare we are matching on 
 We can also pattern match on regular values:
 
 ```
-isFive(x:Int) =
+fn isFive(x) {
   match x
   | 5 -> True
   | _ -> False
+}
 # val isFive :: Int -> Bool = <fn>
 ```
 
@@ -504,12 +494,14 @@ Here, if `x` is `5` the function returns `True`, if it has any other value -- in
 Pattern matching can also be used to destructure tuples:
 
 ```
-let (x, y) = (42, 7) # x = 42, y = 7
+let (x y) = (42 7) # x = 42, y = 7
 
-snakeEyes(x:Int, y:Int) =
-  match (x, y)
-  | (1, 1) -> True
-  | (_, _) -> False
+fn snakeEyes(x y) {
+  match (x y)
+  | (1 1) -> True
+  | (_ _) -> False
+}
+# snakeEyes :: Int -> Int -> Bool = <fn>
 ```
 
 The first example uses a tuple to assign the values of `x` and `y` from another tuple. The second example uses a pattern match on a tuple to check if both provided arguments are equal to `1`.
@@ -527,11 +519,14 @@ This says, if the first pattern matches, and `expr1` evaluates to `True`, execut
 
 We can also use a technique often referred to as an "as-pattern" to match components of an object, and the entire object itself:
 
+NEED A BETTER EXAMPLE HERE
+
 ```
-dupInsert(myList:[Int], el:Int) =
+fn dupInsert(myList el) {
   match myList
   | [] -> el : myList
   | xs@(x : y) -> x : el : y ++ xs
+}
 ```
 
 Although this is a strange example, it illustrates that we can match the entire object and assign it a name as well as match and name its components.
@@ -543,10 +538,12 @@ Iris does not have a `nil` keyword, but it does provide a `None` keyword. `None`
 Appending the `?` to a type tells the compiler that there will either be `Some` value of that type, or `None`. A type of `Int?` tells the compiler that the value is either a `Some Int`, or `None`. If the value is `Some Int`, we must unwrap the value in order to get the `Int`. We will revisit our concatenation function example to see this optional type in action:
 
 ```
-let concat(sep:String?, x:String, y:String) =
+fn concat(sep x y) {
   match sep
   | None -> x ++ y
   | _ -> x ++ sep! ++ y
+}
+# concat :: 'a? -> 'a -> 'a -> 'a = <fn>
 ```
 
 We check to see if the value of `sep` is `None` and handle that case accordingly. Then we match against `_` to make sure the match is exhaustive, and then we use append the `!` operator to the optionally-typed argument to "unwrap" it and access the `String` value inside.
@@ -554,10 +551,12 @@ We check to see if the value of `sep` is `None` and handle that case accordingly
 Alternatively, the following behaves the same way (and is just more explicit):
 
 ```
-let concat(sep:String?, x:String, y:String) =
+fn concat(sep x y) {
   match sep
   | None -> x ++ y
   | Some s -> x ++ s! ++ y
+}
+# concat :: 'a? -> 'a -> 'a -> 'a = <fn>
 ```
 
 ## Bindings
@@ -607,10 +606,10 @@ The scope of each binding is determined by the indentation of the code block bel
 Iris supports `for` loops over a collection:
 
 ```
-let myList = [0, 1, 2, 3, 4, 5, 6]
-# val myList :: [Int] = [0, 1, 2, 3, 4, 5, 6]
+let myList = [0 1 2 3 4 5 6]
+# val myList :: [Int] = [0 1 2 3 4 5 6]
 
-for x in myList =
+for x in myList do
   printLn(x)
 # 0
 # 1
@@ -625,7 +624,7 @@ A potentially useful range syntax:
 
 ```
 let myList = [0 .. 6]
-# val myList :: [Int] = [0, 1, 2, 3, 4, 5, 6]
+# val myList :: [Int] = [0 1 2 3 4 5 6]
 ```
 
 Iris also provides a more functional approach for dealing with collections (including ranges of numbers). It is the built-in function `map`. The signature for `map` looks something like this:
@@ -642,10 +641,10 @@ The `map` function expects two arguments, a `collection` (usually a `List`), and
 Partially applying a function is really simple, just supply the `_` character for the arguments you don't want to apply just yet:
 
 ```
-let add(x:Int, y:Int) = x + y
+let add(x:Int y:Int) = x + y
 # val add :: Int -> Int -> Int = <fn>
 
-let addTwo = add(2, _)
+let addTwo = add(2 _)
 # val addTwo :: Int -> Int = <fn>
 ```
 
@@ -679,8 +678,8 @@ module String exports {
 }
 
 type String = [Char]
-let endsWith(s:String, c:Char) = tail(s) == c
-let startsWith(s:String, c:Char) = head(s) == c
+let endsWith(s:String c:Char) = tail(s) == c
+let startsWith(s:String c:Char) = head(s) == c
 ```
 
 Export statements usually go at the beginning of the module file, with the code following later.
@@ -690,7 +689,7 @@ In order to use the module code in another file, we must `import` the module, li
 ```
 import String
 
-String.startsWith "string", 's'
+String.startsWith "string" 's'
 # - :: Bool = True
 ```
 
@@ -699,17 +698,23 @@ We can qualify an import to avoid namespace conflicts:
 ```
 import String as S
 
-S.startsWith "string", 's'
+S.startsWith "string" 's'
 # - :: Bool = True
 ```
 
 We can also selectively `import` from a module:
 
 ```
-import String.{startsWith, String}
+from String import startsWith, String
 
-String.startsWith "string", 's'
+String.startsWith "string" 's'
 # - :: Bool = True
+```
+
+We can qualify selective imports as well
+
+```
+from String import startsWith as sw, String as S
 ```
 
 ## Interfaces / Type Classes
@@ -718,8 +723,8 @@ One of the most common `interface`s in Iris is `Eq`, which provides methods for 
 
 ```
 interface Eq a {
-  (==)(a, b) : Bool
-  (!=)(a, b) : Bool
+  (==)(a, b) -> Bool
+  (!=)(a, b) -> Bool
 }
 ```
 
@@ -756,14 +761,14 @@ let myFoo = newFoo
 myFoo.bar
 ```
 
-Which is equivalent to `bar myFoo` (or `bar(myFoo)` if you want to use parens), but is a nice syntactical nicety for those coming from more hardcore object-oriented style languages.
+Which is equivalent to `bar myFoo` (or `bar(myFoo)` if you want to use parens), but is a nice syntactical nicety for those coming from more traditional object-oriented style languages.
 
 ## Generics
 
 Sometimes the compiler does not have enough information to determine the concrete type of a given value. Consider:
 
 ```
-let firstIfTrue(test, x, y) =
+let firstIfTrue(test x y) =
   if test(x) then x else y end
 val firstIfTrue :: ('a -> Bool) -> 'a -> 'a -> 'a = <fn>
 ```
@@ -780,7 +785,7 @@ With `String`s
 let longString s = s.length > 6
 # val longString :: String -> Bool = <fn>
 
-firstIfTrue longString, "short", "wow this is super long"
+firstIfTrue longString, "short" "wow this is super long"
 # - :: String = "wow this is super long"
 ```
 
@@ -790,7 +795,7 @@ And `Int`s
 let bigNum n = n > 10
 # val bigNum :: Int -> Bool = <fn>
 
-firstIfTrue bigNum, 3, 7
+firstIfTrue bigNum 3 7
 # - :: Int = 7
 ```
 
