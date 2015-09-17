@@ -609,8 +609,9 @@ Iris supports `for` loops over a collection:
 let myList = [0 1 2 3 4 5 6]
 # val myList :: [Int] = [0 1 2 3 4 5 6]
 
-for x in myList do
+for x in myList {
   printLn(x)
+}
 # 0
 # 1
 # 2
