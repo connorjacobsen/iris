@@ -42,7 +42,7 @@ Both of these lines are type annotations. The `#` tells us that the line is a co
 
 #### Int
 
-`Int`s in Iris are signed integer values. These values can be added, subtracted, multiplied, and divided in the expected ways.
+`Int`s in Iris are signed integer values. These values can be added, subtracted, multiplied, and divided in the expected ways. `Int`s are 32 bit signed values.
 
 Examples:
 
@@ -81,7 +81,7 @@ Iris also provides the power and modulo operators:
 
 #### Float
 
-The `Float` type is very similar to the `Int` type, and supports all of the same built-in operators.
+The `Float` type is very similar to the `Int` type, and supports all of the same built-in operators. The `Float` type is a 32 bit signed value.
 
 Examples:
 
