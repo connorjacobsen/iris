@@ -136,22 +136,22 @@ There are only two `Bool` values in Iris: `True` and `False`. They behave in the
 
 ```
 True == True
-# => True
+# - :: Bool = True
 
 False == False
-# => True
+# - :: Bool = True
 
 True != False
-# => True
+# - :: Bool = True
 
 True != True
-# => False
+# - :: Bool = False
 
 !True == False
-# => True
+# - :: Bool = True
 
 not True == not not False
-# => True
+# - :: Bool = True
 ```
 
 The `!` and `not` functions behave the same way, performing a boolean negation of the expression immediately to its right.
@@ -203,7 +203,7 @@ Lists may be concatenated with the `++` operator:
 
 #### String
 
-Strings are not a built-in type in Iris. Instead, they are simply a `List` of `Char`s, or `[Char]`.
+Strings are a built-in type in Iris. However, they behavior in the manner one might expect from a `List` of `Char`s, or `[Char]`.
 
 All of the standard `List` operations also work for Strings:
 
@@ -215,11 +215,13 @@ All of the standard `List` operations also work for Strings:
 # - :: [Char] = "hello, world!"
 ```
 
+Instead of mutating the existing `String`, these `String` operations create and return a new `String`.
+
 #### Map
 
 The `Map` type is a key-value type, delimited by curly brackets. The types of the keys and values must be consistent.
 
-Maps require commas between
+Maps require commas between each key-value pair in order to make the pairs distinguishable from one another. A map of `String` to `String` would be difficult to read without commas if it were large enough.
 
 Example:
 
@@ -303,7 +305,7 @@ fn add((x1 y1) (x2 y2)) = (x1 + x2 y1 + y2)
 We can even define infix operators as functions if we surround the function name with parenthesis:
 
 ```
-let (!+)((x1 y1) (x2 y2)) = (x1 + x2 y1 + y2)
+fn (!+)((x1 y1) (x2 y2)) = (x1 + x2 y1 + y2)
 # val !+ :: (Num Num) -> (Num Num) -> (Num Num) = <fn>
 ```
 
@@ -325,24 +327,47 @@ You will also notice the use of `{}` for this multi-line function body. When fun
 We can also specify a function argument as an optional argument by prefixing the argument name with a `?`. The following example also includes a `?` appended to the type annotation which specifies an option type, as well as including a match statement. It is okay if these constructs look foreign, we will cover them later:
 
 ```
+concat :: String? -> String -> String -> String
 fn concat(sep x y) {
-  match sep
+  match sep with
   | None -> x ++ y
   | _ -> x ++ sep! ++ y
 }
-# val concat :: String? -> String -> String -> String = <fn>
 ```
 
-By default, all arguments to a function are passed as copies, and thus are immutable. In order to access the original object, we have to declare the argument to be mutable with the keyword `mut` in the function signature:
+By default, all arguments to a function are passed as copies, and thus are immutable. In order to access the original object, we have to declare the argument to be mutable with the keyword `ref` in the function signature:
 
 ```
-fn getOlder(mut p:Person) = p.age += 1
-# val getOlder :: &Person -> Int = <fn>
+getOlder :: ref Person -> ()
+fn getOlder(p) = p.age += 1
 ```
 
-The `&` before `Person` in the function type is the result of declaring the `Person` argument as mutable.
+Sometimes, we might not want to edit the original object, but we may want to be able to mutate a copy of the object. We do this with the `mut` keyword:
+
+```
+getOlder :: mut Person -> ()
+fn getOlder(p) = p.age += 1
+```
+
+We can use `&` as a short-hand for the `mut` keyword:
+
+```
+getOlder :: &Person -> ()
+fn getOlder(p) = p.age += 1
+```
 
 *Note: This particular example also requires that the `age` property of a `Person` be mutable.*
+
+Sometimes the compiler needs a little help figuring out the type signature for a function. Fortunately, we can help the compiler out with a type annotation:
+
+```
+foo :: Int -> Int -> Bool
+fn foo(x, y) {
+  # contents elided
+}
+```
+
+This annotation will tell the compiler that our function `foo` should accept two `Int`s as parameters and returns a `Bool`.
 
 #### Tuple
 
@@ -403,9 +428,7 @@ Iris comes with a few useful built-in types, but it also provides a way to defin
 type Buffer = [Int]
 ```
 
-Here we have defined a new type, `Buffer` which is a `List` of `Int`s. We may now define functions for our new `Buffer` type, and these functions treat a `Buffer` as a `List` of `Int`s.
-
-This does not mean that `Buffer` is a list of `Int` values. It defines a new type, which in this situation is made up of a list of `Int`s.
+Here we have defined a new type, `Buffer` which is a `List` of `Int`s. We may now define functions for our new `Buffer` type, and these functions treat a `Buffer` as a `List` of `Int`s. This does not mean that we can use a `Buffer` everywhere we previously used `[Int]`. It is not an alias, it is a new type.
 
 What if we want a more complex type? Iris allows us to do that too.
 
@@ -469,7 +492,7 @@ An example of pattern matching with `List`s:
 
 ```
 fn firstElement(l) {
-  match l
+  match l with
   | [] -> None
   | hd : tl -> hd
 }
@@ -482,14 +505,16 @@ We can also pattern match on regular values:
 
 ```
 fn isFive(x) {
-  match x
+  match x with
   | 5 -> True
   | _ -> False
 }
 # val isFive :: Int -> Bool = <fn>
 ```
 
-Here, if `x` is `5` the function returns `True`, if it has any other value -- indicated by the use of `_` -- the function returns `False`. `_` is important in pattern matching, because matches must always be exhaustive. The compiler will throw an error if it catches a patten match which does not handle all possible cases, and the use of `_` is the simplest way to specify default behavior.
+Here, if `x` is `5` the function returns `True`, if it has any other value -- indicated by the use of `_` -- the function returns `False`. `_` is important in pattern matching, because matches must always be exhaustive.
+
+The compiler will throw an error if it catches a patten match which does not handle all possible cases, and the use of `_` is the simplest way to specify default behavior. Unfortunately, this is not *always* possible, but the compiler will throw an error if it can find a non-exhaustive match. This is possible for most of the built-in types.
 
 Pattern matching can also be used to destructure tuples:
 
@@ -497,7 +522,7 @@ Pattern matching can also be used to destructure tuples:
 let (x y) = (42 7) # x = 42, y = 7
 
 fn snakeEyes(x y) {
-  match (x y)
+  match (x y) with
   | (1 1) -> True
   | (_ _) -> False
 }
@@ -509,7 +534,7 @@ The first example uses a tuple to assign the values of `x` and `y` from another 
 We can uses guards in pattern matching to simplify what would be complex `if` statements:
 
 ```
-match <binding>
+match <binding> with
 | <pat1> when <expr1> -> <expr2>
 | <pat2> when <expr3> -> <expr4>
 | <pat2> when <expr5> -> <expr6>
@@ -523,7 +548,7 @@ NEED A BETTER EXAMPLE HERE
 
 ```
 fn dupInsert(myList el) {
-  match myList
+  match myList with
   | [] -> el : myList
   | xs@(x : y) -> x : el : y ++ xs
 }
@@ -538,8 +563,9 @@ Iris does not have a `nil` keyword, but it does provide a `None` keyword. `None`
 Appending the `?` to a type tells the compiler that there will either be `Some` value of that type, or `None`. A type of `Int?` tells the compiler that the value is either a `Some Int`, or `None`. If the value is `Some Int`, we must unwrap the value in order to get the `Int`. We will revisit our concatenation function example to see this optional type in action:
 
 ```
+concat :: 'a? -> 'a -> 'a -> 'a
 fn concat(sep x y) {
-  match sep
+  match sep with
   | None -> x ++ y
   | _ -> x ++ sep! ++ y
 }
@@ -551,12 +577,12 @@ We check to see if the value of `sep` is `None` and handle that case accordingly
 Alternatively, the following behaves the same way (and is just more explicit):
 
 ```
+concat :: 'a? -> 'a -> 'a -> 'a
 fn concat(sep x y) {
-  match sep
+  match sep with
   | None -> x ++ y
   | Some s -> x ++ s! ++ y
 }
-# concat :: 'a? -> 'a -> 'a -> 'a = <fn>
 ```
 
 ## Bindings
@@ -588,13 +614,15 @@ num = 7
 
 And the compiler won't yell at us!
 
-We can also create local bindings by adding `in` to the declaration.
+We can also create local bindings by adding `{}` to the declaration.
 
 ```
-let x = 42 in
-  let y = 2 in
+let x = 42 {
+  let y = 2 {
     x + y
+  }
   printLn y # Error! y is no longer in scope!
+}
 
 foo(x, y)
 ```
@@ -718,18 +746,18 @@ We can qualify selective imports as well
 from String import startsWith as sw, String as S
 ```
 
-## Interfaces / Type Classes
+## Traits
 
-One of the most common `interface`s in Iris is `Eq`, which provides methods for determining equality of two values.
+One of the most common traits in Iris is `Eq`, which provides methods for determining equality of two values.
 
 ```
-interface Eq a {
-  (==)(a, b) -> Bool
-  (!=)(a, b) -> Bool
+trait Eq a {
+  (==)(a, b) :: 'a -> 'b -> Bool
+  (!=)(a, b) :: 'a -> 'b -> Bool
 }
 ```
 
-The type `Complex`, which represents a complex number and implements the `Eq` interface may look something like this:
+The type `Complex`, which represents a complex number and implements the `Eq` trait may look something like this:
 
 ```
 type Complex = (real:Float, img:Float)
@@ -742,6 +770,28 @@ Complex implements Eq {
 
 After defining the implementation of `==` for `Complex`, we were able to define `!=` in terms of `==`.
 
+#### A note about traits
+
+While all types which implement a given trait have the same functionality, they do not necessarily share the same representation.
+
+## Subtypes
+
+Given the following:
+
+```
+type A = (x:Int, y:Int)
+type B = (a:A, z:Int)
+
+a = A(1, 2)
+b = B(a, 3)
+
+# If `b` does not understand a function call, it tries to find one of its
+# components which does understand the function call. If it can't find
+# a component which understand the function call, an exception is thrown.
+b.x
+# - :: Int = 1
+```
+
 ## A Little Sugar
 
 With named tuples, a little bit of syntactic sugar, and interfaces we can get most of the benefits of objects and structs without having classes.
@@ -749,8 +799,9 @@ With named tuples, a little bit of syntactic sugar, and interfaces we can get mo
 If we have a type `Foo`, and some function `bar` with the following signature
 
 ```
-fn bar(foo:Foo)
-# val bar :: Foo -> Unit
+bar :: Foo -> ()
+fn bar(foo)
+# val bar :: Foo -> ()
 ```
 
 We can apply this function to an instance of `Foo` in the following way
@@ -769,6 +820,7 @@ Which is equivalent to `bar myFoo` (or `bar(myFoo)` if you want to use parens), 
 Sometimes the compiler does not have enough information to determine the concrete type of a given value. Consider:
 
 ```
+firstIfTrue :: ('a -> Bool) -> 'a -> 'a -> 'a
 fn firstIfTrue(test x y) {
   if test(x) then x else y end
 }
@@ -854,8 +906,9 @@ A simple example:
 
 ```
 let x = 41
-&x in
+&x {
   x += 1
+}
 
 printLn x
 # 42
@@ -867,9 +920,10 @@ We can also declare multiple bindings with scoped mutability:
 
 ```
 let x = 1, y = 2
-&x, &y in
+&x, &y {
   double(x)
   double(y)
+}
 
 printLn x
 # 2
@@ -887,7 +941,19 @@ let x = 41
 
 The key to scoped mutability is to use it for the smallest sections of code as possible. If we can limit the mutability of a binding to exactly the locations for which we want it, our code is easier to understand and unwanted side effects are more likely to be prevented.
 
+A potential shorthand, and possible replacement, for this is:
+
+```
+let mut x = 42
+# val &x :: Int = 42
+
+&x = 7
+# val &x :: Int = 7
+```
+
 ## Macros
+
+*This section incomplete*
 
 Macros are expanded before static checking, so they don't have to follow the same rules as most Iris code.
 
@@ -898,4 +964,4 @@ macro unless condition expression =
 
 ## Concurrency
 
-The Iris standard library will provide threads, but there are no concurrency primitives in the language.
+The Iris standard library will provide threads, but there are no concurrency primitives in the language for the time being. Any future concurrency primitives would be in the style of CSP.

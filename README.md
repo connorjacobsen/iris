@@ -6,22 +6,19 @@ View the initial [language specification](SPECIFICATION.md)
 
 Comment on the language spec: https://github.com/connorjacobsen/iris/issues/1
 
-Questions:
-
-- Can we differentiate between different tuple types without comma delimeters?
-
 ## Dependencies
 
-Iris uses `sedlex` for lexing, and `menhir` for parsing.
+Iris uses `ocamllex` for lexing, and `menhir` for parsing.
 
-Install `sedlex`:
+Install `menhir`:
 
 ```bash
-opam install sedlex
-```
-
-and `menhir`:
-
-```
 opam install menhir
+```
+
+## Build and run executable
+
+```bash
+make
+./src/iris
 ```
