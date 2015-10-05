@@ -22,3 +22,7 @@ opam install menhir
 make
 ./src/iris
 ```
+
+## Contributing
+
+This repo is part of my senior project, so unfortunately I cannot accept code contributions until the end of the semester. However, comments, thoughts, and concerns are more than welcome. Please leave any comments in an issue or contact me personally. I will amend this section once the semester concludes.
