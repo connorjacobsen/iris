@@ -1,0 +1,38 @@
+hd :: ['a] -> 'a?
+fn hd(l) {
+  match l with
+  | [] -> None
+  | hd : _ -> hd
+}
+
+tl :: ['a] -> 'a?
+fn tl(l) {
+  match l with
+  | [] -> None
+  | _ : tl -> tl
+}
+
+size :: ['a] -> Int
+fn size(l) {
+  match l with
+  | [] -> 0
+  | hd : tl -> 1 + size(tl)
+}
+
+el :: ['a] -> Int -> 'a?
+fn el(l, n) {
+  match l with
+  | [] -> None
+  | hd : tl ->
+    if n == 0 then hd
+    else el(tl, n-1) end
+}
+
+mem :: ['a] -> 'a -> Bool
+fn mem(l, e) {
+  match l with
+  | [] -> False
+  | hd : tl ->
+    if hd == e then True
+    else mem(tl, e) end
+}
