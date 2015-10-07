@@ -1,0 +1,8 @@
+# Sample function with everything explicitly written out.
+
+sum :: Int -> Int -> Int;
+sum(let a let b) {
+  a + b;
+}
+
+sum(1 2);
