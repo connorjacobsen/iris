@@ -8,3 +8,6 @@ native:
 
 byte:
 		ocamlbuild src/iris.byte
+
+clean:
+		ocamlbuild -clean
