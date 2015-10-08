@@ -1,4 +1,10 @@
-.PHONY : all test clean
+.PHONY : all clean
 
-all clean:
-		$(MAKE) -C src $@
+all: native
+		@true
+
+native:
+		ocamlbuild src/iris.native
+
+byte:
+		ocamlbuild src/iris.byte
