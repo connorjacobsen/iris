@@ -20,7 +20,7 @@ opam install menhir
 
 ```bash
 make
-./src/iris
+./iris.native
 ```
 
 ## Contributing
