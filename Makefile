@@ -4,10 +4,10 @@ all: native
 		@true
 
 native:
-		ocamlbuild src/iris.native
+		ocamlbuild -use-ocamlfind src/iris.native -package llvm
 
 byte:
-		ocamlbuild src/iris.byte
+		ocamlbuild -use-ocamlfind src/iris.byte -package llvm
 
 clean:
 		ocamlbuild -clean

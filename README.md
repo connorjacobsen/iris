@@ -8,12 +8,18 @@ Comment on the language spec: https://github.com/connorjacobsen/iris/issues/1
 
 ## Dependencies
 
-Iris uses `ocamllex` for lexing, and `menhir` for parsing.
+Iris uses `ocamllex` for lexing, and `menhir` for parsing. You will also need to install the `llvm` module via `Opam` for the LLVM Ocaml bindings.
 
 Install `menhir`:
 
 ```bash
 opam install menhir
+```
+
+Install `llvm`:
+
+```bash
+opam install llvm
 ```
 
 ## Build and run executable

@@ -1,4 +1,8 @@
-%token <int> INT
+%{
+  open Llvm
+%}
+
+%token <Ast.expr> INT
 %token PLUS MINUS TIMES DIV
 %token SEMICOLON
 %token EOF
@@ -6,10 +10,9 @@
 /* Lowest precedence */
 %left PLUS MINUS
 %left TIMES DIV
-%nonassoc UMINUS
 /* Highest precedence */
 
-%start <int list> main
+%start <Ast.expr list> main
 
 %%
 
@@ -25,10 +28,32 @@ statement:
 ;
 
 expr:
-| i = INT { i }
-| e1 = expr PLUS e2 = expr { e1 + e2 }
-| e1 = expr MINUS e2 = expr { e1 - e2 }
-| e1 = expr TIMES e2 = expr { e1 * e2 }
-| e1 = expr DIV e2 = expr { e1 / e2 }
-| MINUS e = expr %prec UMINUS { - e }
+| f = factor { f }
+| e1 = expr PLUS e2 = expr {
+    let result = Ast.Binary ('+', e1, e2) in
+    dump_value (Codegen.codegen_expr result);
+    result
+  }
+| e1 = expr MINUS e2 = expr {
+    let result = Ast.Binary ('-', e1, e2) in
+    dump_value (Codegen.codegen_expr result);
+    result
+  }
+| e1 = expr TIMES e2 = expr {
+    let result = Ast.Binary ('*', e1, e2) in
+    dump_value (Codegen.codegen_expr result);
+    result
+  }
+| e1 = expr DIV e2 = expr {
+    let result = Ast.Binary ('/', e1, e2) in
+    dump_value (Codegen.codegen_expr result);
+    result
+  }
+;
+
+factor:
+| i = INT {
+    dump_value (Codegen.codegen_expr i);
+    i
+  }
 ;

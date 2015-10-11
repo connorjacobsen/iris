@@ -40,7 +40,7 @@ let newline = '\r' | '\n' | "\r\n"
 rule read = parse
   | white
   | newline { read lexbuf }
-  | int as ival { INT (int_of_string ival) }
+  | int as ival { INT (Ast.Int (int_of_string ival)) }
   | ';' { SEMICOLON }
   | '+' { PLUS }
   | '*' { TIMES }

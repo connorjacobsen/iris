@@ -21,6 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. *)
 
 open Lexing
+open Llvm
 
 let rec print_list lst =
   match lst with
@@ -41,4 +42,7 @@ let main () =
     []
 ;;
 
-let _ = Printexc.print main ()
+let _ = Printexc.print main ();;
+
+(* dump all of the generated code *)
+dump_module Codegen.the_module
