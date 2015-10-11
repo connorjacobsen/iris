@@ -10,6 +10,7 @@
 /* Lowest precedence */
 %left PLUS MINUS
 %left TIMES DIV
+%nonassoc UMINUS
 /* Highest precedence */
 
 %start <Ast.expr list> main
@@ -46,6 +47,11 @@ expr:
   }
 | e1 = expr DIV e2 = expr {
     let result = Ast.Binary ('/', e1, e2) in
+    dump_value (Codegen.codegen_expr result);
+    result
+  }
+| MINUS e = expr %prec UMINUS {
+    let result = Std.unary_minus e in
     dump_value (Codegen.codegen_expr result);
     result
   }
