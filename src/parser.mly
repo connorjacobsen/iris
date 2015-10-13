@@ -4,8 +4,11 @@
 
 %token <Ast.expr> INT
 %token <Ast.expr> FLOAT
+%token <Ast.name> IDENT
 %token PLUS MINUS TIMES DIV
 %token SEMICOLON
+%token EQ NEQ LT GT LTE GTE ASSIGN
+%token LET FUNC
 %token EOF
 
 /* Lowest precedence */
@@ -27,6 +30,7 @@ main:
 /* For now, expressions end with a semicolon. Later they will end with a newline. */
 statement:
 | e = expr SEMICOLON { e }
+/*| LET id = IDENT KEQ e = expr*/
 ;
 
 expr:

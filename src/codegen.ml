@@ -30,16 +30,34 @@ let sub_op lhs rhs =
     build_sub lhs rhs "subtmp" builder
   | TypeKind.Double ->
     build_fsub lhs rhs "subtmp" builder
-  | _ -> raise (Error "Type error on add!")
+  | _ -> raise (Error "Type error on sub!")
 
 let mul_op lhs rhs =
   let ty = classify_type (type_of lhs) in
   match ty with
   | TypeKind.Integer ->
-    build_mul lhs rhs "addtmp" builder
+    build_mul lhs rhs "multmp" builder
   | TypeKind.Double ->
-    build_fmul lhs rhs "addtmp" builder
-  | _ -> raise (Error "Type error on add!")
+    build_fmul lhs rhs "multmp" builder
+  | _ -> raise (Error "Type error on mul!")
+
+let div_op lhs rhs =
+  let ty = classify_type (type_of lhs) in
+  match ty with
+  | TypeKind.Integer ->
+    build_sdiv lhs rhs "divtmp" builder
+  | TypeKind.Double ->
+    build_fdiv lhs rhs "divtmp" builder
+  | _ -> raise (Error "Type error on div!")
+
+let mod_op lhs rhs =
+  let ty = classify_type (type_of lhs) in
+  match ty with
+  | TypeKind.Integer ->
+    build_srem lhs rhs "modtmp" builder
+  | TypeKind.Double ->
+    build_frem lhs rhs "modtmp" builder
+  | _ -> raise (Error "Type error on div!")
 
 let rec codegen_expr = function
   | Ast.Int i -> const_int iris_int_type i
@@ -52,5 +70,7 @@ let rec codegen_expr = function
       | '+' -> add_op lhs_val rhs_val
       | '-' -> sub_op lhs_val rhs_val
       | '*' -> mul_op lhs_val rhs_val
+      | '/' -> div_op lhs_val rhs_val
+      | '%' -> mod_op lhs_val rhs_val
       | _ -> raise (Error "invalid infix operator")
     end
