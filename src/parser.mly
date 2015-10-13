@@ -3,6 +3,7 @@
 %}
 
 %token <Ast.expr> INT
+%token <Ast.expr> FLOAT
 %token PLUS MINUS TIMES DIV
 %token SEMICOLON
 %token EOF
@@ -61,5 +62,9 @@ factor:
 | i = INT {
     dump_value (Codegen.codegen_expr i);
     i
+  }
+| f = FLOAT {
+    dump_value (Codegen.codegen_expr f);
+    f
   }
 ;

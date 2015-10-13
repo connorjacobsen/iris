@@ -33,6 +33,7 @@ let bin_number = '0' 'b' ['0'-'1']+
 let decimal_number = '-'? '0' | ['1'-'9'] digit*
 let octal_number = '0' ['0'-'7']+
 let int = decimal_number | hex_number | bin_number | octal_number
+let float = ['0'-'9']* '.' ['0'-'9']*
 
 let white = [' ' '\t']+
 let newline = '\r' | '\n' | "\r\n"
@@ -41,6 +42,7 @@ rule read = parse
   | white
   | newline { read lexbuf }
   | int as ival { INT (Ast.Int (int_of_string ival)) }
+  | float as fval { FLOAT (Ast.Float (float_of_string fval)) }
   | ';' { SEMICOLON }
   | '+' { PLUS }
   | '*' { TIMES }
