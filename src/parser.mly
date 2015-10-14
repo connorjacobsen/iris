@@ -4,11 +4,9 @@
 
 %token <Ast.expr> INT
 %token <Ast.expr> FLOAT
-%token <Ast.name> IDENT
-%token PLUS MINUS TIMES DIV
+/*%token <Ast.name> IDENT*/
+%token PLUS MINUS TIMES DIV MOD
 %token SEMICOLON
-%token EQ NEQ LT GT LTE GTE ASSIGN
-%token LET FUNC
 %token EOF
 
 /* Lowest precedence */
@@ -52,6 +50,11 @@ expr:
   }
 | e1 = expr DIV e2 = expr {
     let result = Ast.Binary ('/', e1, e2) in
+    dump_value (Codegen.codegen_expr result);
+    result
+  }
+| e1 = expr MOD e2 = expr {
+    let result = Ast.Binary ('%', e1, e2) in
     dump_value (Codegen.codegen_expr result);
     result
   }

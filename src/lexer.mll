@@ -35,6 +35,10 @@ let octal_number = '0' ['0'-'7']+
 let int = decimal_number | hex_number | bin_number | octal_number
 let float = ['0'-'9']* '.' ['0'-'9']*
 
+let lchar = ['a'-'z']
+let uchar = ['A'-'Z']
+let sym = ['!' '@' '$' '%' '^' '&' '*' '_' '-' '+' '?' '|']
+
 let white = [' ' '\t']+
 let newline = '\r' | '\n' | "\r\n"
 
@@ -48,6 +52,7 @@ rule read = parse
   | '*' { TIMES }
   | '-' { MINUS }
   | '/' { DIV }
+  | '%' { MOD }
   | eof { EOF }
   | _
       { raise (Error (Printf.sprintf "At offset %d: unexpected character.\n" (Lexing.lexeme_start lexbuf))) }
