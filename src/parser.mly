@@ -4,9 +4,12 @@
 
 %token <Ast.expr> INT
 %token <Ast.expr> FLOAT
-/*%token <Ast.name> IDENT*/
+%token <string> IDENT
 %token PLUS MINUS TIMES DIV MOD
+%token LET
+%token ASSIGN
 %token SEMICOLON
+%token LPAREN RPAREN
 %token EOF
 
 /* Lowest precedence */
@@ -28,11 +31,19 @@ main:
 /* For now, expressions end with a semicolon. Later they will end with a newline. */
 statement:
 | e = expr SEMICOLON { e }
-/*| LET id = IDENT KEQ e = expr*/
 ;
 
 expr:
 | f = factor { f }
+| LET id = IDENT ASSIGN e = expr {
+    Symtbl.add id (Codegen.codegen_expr e);
+    Ast.Val id
+  }
+| id = IDENT {
+    dump_value (Symtbl.find id);
+    Ast.Val id
+  }
+| LPAREN e = expr RPAREN { e }
 | e1 = expr PLUS e2 = expr {
     let result = Ast.Binary ('+', e1, e2) in
     dump_value (Codegen.codegen_expr result);

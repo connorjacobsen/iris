@@ -38,7 +38,8 @@ let main () =
     Printf.eprintf "%s%!" msg;
     []
   | Parser.Error ->
-    Printf.eprintf "At offset %d: syntax error.\n%!" (Lexing.lexeme_start filebuf);
+    let pos = Lexing.lexeme_end_p filebuf in
+    Printf.eprintf "At line:%d, col:%d syntax error.\n%!" pos.pos_lnum (pos.pos_bol + 1);
     []
 ;;
 

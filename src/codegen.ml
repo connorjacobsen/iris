@@ -74,3 +74,6 @@ let rec codegen_expr = function
       | '%' -> mod_op lhs_val rhs_val
       | _ -> raise (Error "invalid infix operator")
     end
+  | Ast.Val id ->
+    (try Symtbl.find id with
+      | Not_found -> raise (Error "unknown variable name"))

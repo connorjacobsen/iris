@@ -7,8 +7,8 @@ type expr =
   | Int of int (** integer constant *)
   (*| Bool of bool (** boolean constant *) *)
   | Float of float (** float constant *)
-  (* | Val of name (** immutable value *)
-  | Var of name (** mutaable variable *) *)
+  | Val of name (** immutable value *)
+  (*| Var of name (** mutaable variable *) *)
 
   (* variant for Binary operations *)
   (* will eventually be replaced by functions *)

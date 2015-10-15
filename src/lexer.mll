@@ -38,6 +38,7 @@ let float = ['0'-'9']* '.' ['0'-'9']*
 let lchar = ['a'-'z']
 let uchar = ['A'-'Z']
 let sym = ['!' '@' '$' '%' '^' '&' '*' '_' '-' '+' '?' '|']
+let ident = lchar (lchar|uchar)*
 
 let white = [' ' '\t']+
 let newline = '\r' | '\n' | "\r\n"
@@ -53,6 +54,11 @@ rule read = parse
   | '-' { MINUS }
   | '/' { DIV }
   | '%' { MOD }
+  | '=' { ASSIGN }
+  | '(' { LPAREN }
+  | ')' { RPAREN }
+  | "let" { LET }
+  | ident as sval { IDENT sval }
   | eof { EOF }
   | _
       { raise (Error (Printf.sprintf "At offset %d: unexpected character.\n" (Lexing.lexeme_start lexbuf))) }
