@@ -11,6 +11,7 @@ let named_values:(string, llvalue) Hashtbl.t = Hashtbl.create 10
 
 let iris_int_type = i32_type context
 let iris_float_type = double_type context
+let iris_bool_type = i1_type context
 
 (* Should clean these up at some point *)
 
@@ -61,6 +62,8 @@ let mod_op lhs rhs =
 
 let rec codegen_expr = function
   | Ast.Int i -> const_int iris_int_type i
+  | Ast.Bool b ->
+    if b then const_int iris_bool_type 1 else const_int iris_bool_type 0
   | Ast.Float f -> const_float iris_float_type f
   | Ast.Binary (op, lhs, rhs) ->
     let lhs_val = codegen_expr lhs in

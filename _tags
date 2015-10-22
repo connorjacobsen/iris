@@ -1,2 +1,4 @@
 true: use_menhir
+true: thread,debug
+true: package(core)
 <*.{byte,native}>: g++, use_llvm, use_llvm_analysis

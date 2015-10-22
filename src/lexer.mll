@@ -38,7 +38,8 @@ let float = ['0'-'9']* '.' ['0'-'9']*
 let lchar = ['a'-'z']
 let uchar = ['A'-'Z']
 let sym = ['!' '@' '$' '%' '^' '&' '*' '_' '-' '+' '?' '|']
-let ident = lchar (lchar|uchar)*
+let ident = lchar (lchar|uchar|sym)*
+let tyname = uchar lchar* '?'?
 
 let white = [' ' '\t']+
 let newline = '\r' | '\n' | "\r\n"
@@ -49,6 +50,7 @@ rule read = parse
   | int as ival { INT (Ast.Int (int_of_string ival)) }
   | float as fval { FLOAT (Ast.Float (float_of_string fval)) }
   | ';' { SEMICOLON }
+  | "::" { COLONCOLON }
   | '+' { PLUS }
   | '*' { TIMES }
   | '-' { MINUS }
@@ -57,8 +59,13 @@ rule read = parse
   | '=' { ASSIGN }
   | '(' { LPAREN }
   | ')' { RPAREN }
+  | "->" { ARROW }
   | "let" { LET }
+  | "fn" { FN }
+  | "True" { TRUE }
+  | "False" { FALSE }
   | ident as sval { IDENT sval }
+  | tyname as sval { TTYPE sval }
   | eof { EOF }
   | _
       { raise (Error (Printf.sprintf "At offset %d: unexpected character.\n" (Lexing.lexeme_start lexbuf))) }
