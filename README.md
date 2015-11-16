@@ -22,6 +22,16 @@ Install `llvm`:
 opam install llvm
 ```
 
+## Run the Llvm top level
+
+`llvmutop` provides a top level with the `Llvm` module loaded.
+
+To run it:
+
+```bash
+./llvmutop
+```
+
 ## Build and run executable
 
 ```bash
