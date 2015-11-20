@@ -21,6 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. *)
 
 {
+  open Lexing
   open Parser
 
   exception Error of string
@@ -47,10 +48,10 @@ let newline = '\r' | '\n' | "\r\n"
 rule read = parse
   | white
   | newline { read lexbuf }
-  | int as ival { INT (Ast.Int (int_of_string ival)) }
-  | float as fval { FLOAT (Ast.Float (float_of_string fval)) }
+  | int as ival { INT (int_of_string ival) }
+  | float as fval { FLOAT (float_of_string fval) }
+  | ':' { COLON }
   | ';' { SEMICOLON }
-  | "::" { COLONCOLON }
   | '+' { PLUS }
   | '*' { TIMES }
   | '-' { MINUS }
@@ -59,13 +60,17 @@ rule read = parse
   | '=' { ASSIGN }
   | '(' { LPAREN }
   | ')' { RPAREN }
-  | "->" { ARROW }
+  | '{' { LBRACKET }
+  | '}' { RBRACKET }
   | "let" { LET }
+  | "mut" { MUT }
   | "fn" { FN }
   | "True" { TRUE }
   | "False" { FALSE }
   | ident as sval { IDENT sval }
   | tyname as sval { TTYPE sval }
   | eof { EOF }
-  | _
-      { raise (Error (Printf.sprintf "At offset %d: unexpected character.\n" (Lexing.lexeme_start lexbuf))) }
+  | _ {
+        let loc = Location.of_lexeme lexbuf in
+        raise (Error (Location.to_string loc))
+      }

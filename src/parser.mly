@@ -1,19 +1,21 @@
 %{
   open Llvm
 
-  exception Already_defined of string;;
+  exception Already_defined of string
+  exception Uninitialized_binding of string
 %}
 
-%token <Ast.expr> INT
-%token <Ast.expr> FLOAT
+%token <int> INT
+%token <float> FLOAT
 %token TRUE FALSE
-%token <string> IDENT
+%token <Ast.name> IDENT
 %token <string> TTYPE
 %token PLUS MINUS TIMES DIV MOD
-%token LET FN
-%token ASSIGN ARROW
-%token SEMICOLON COLONCOLON
-%token LPAREN RPAREN
+%token LET MUT FN
+%token ASSIGN
+%token SEMICOLON COLON COMMA
+%token IF THEN ELSE END
+%token LPAREN RPAREN LBRACKET RBRACKET
 %token EOF
 
 /* Lowest precedence */
@@ -28,119 +30,90 @@
 
 /* Calculated results are accumulated in an OCaml int list */
 main:
-| stmt = statement EOF { [stmt] }
-| stmt = statement m = main { stmt :: m }
+| EOF
+  { [] }
+| stmt = statement EOF
+  { [stmt]  }
+| stmt = statement m = main
+  { stmt :: m }
 ;
 
 /* For now, expressions end with a semicolon. Later they will end with a newline. */
 statement:
-| e = expr SEMICOLON { e }
-| p = fn_proto SEMICOLON { p }
+| d = def SEMICOLON
+  { d }
+| e = expr SEMICOLON
+  { e }
+;
+
+def:
+| LET id = IDENT ASSIGN e = expr
+  { Ast.Def (id, e) }
+| LET MUT id = IDENT ASSIGN e = expr
+  { Ast.Mut (id, e) }
+| id = IDENT
+  { Ast.Id id }
+;
+
+/* a:Int, b:(), c:Int */
+param_list: { [] }
+| p = param
+  { [p] }
+| pl = param_list COMMA p = param
+  { List.append pl [p] }
 ;
 
 expr:
-| f = factor { f }
-/*| f = simple_fn { f }*/
-| arith { $1 }
-| LET id = IDENT ASSIGN e = expr {
-    let binding_exists = Symtbl.exists id in
-    match binding_exists with
-    | true -> raise (Already_defined (Ast.name_to_string id))
-    | false ->
-      Symtbl.add id (Codegen.codegen_expr e);
-      Ast.Val id
-  }
-| id = IDENT {
-    dump_value (Symtbl.find id);
-    Ast.Val id
-  }
-| LPAREN e = expr RPAREN { e }
-;
-
-fn_proto:
-/*
-  foo :: Int -> Int -> Int, or
-  bar :: ()
-*/
-| id = IDENT COLONCOLON tl = ty_list {
-    Printf.printf "Param list size: %d\n" (List.length tl);
-    Ast.Prototype (id, tl)
+| e = simple_expr
+  { e }
+| MINUS e = expr %prec UMINUS
+  { Ast.Unary ('-', e) }
+| e1 = expr PLUS e2 = expr
+  { Ast.Binary ('+', e1, e2) }
+| e1 = expr MINUS e2 = expr
+  { Ast.Binary ('-', e1, e2) }
+| e1 = expr TIMES e2 = expr
+  { Ast.Binary ('*', e1, e2) }
+| e1 = expr DIV e2 = expr
+  { Ast.Binary ('/', e1, e2) }
+| e1 = expr MOD e2 = expr
+  { Ast.Binary ('%', e1, e2) }
+| IF cond = expr THEN e1 = expr ELSE e2 = expr END
+  { Ast.If (cond, e1, e2) }
+| FN id = IDENT LPAREN pl = param_list RPAREN COLON ret_ty = ty_simple LBRACKET e = expr RBRACKET
+  { (* param_list is of form: [ (name, type), (name, type), ... ] *)
+    let (params, types) = List.split pl in
+    let params = List.append params [ret_ty] in
+    Ast.Function (id, params, types, e)
   }
 ;
 
+simple_expr:
+| i = INT
+  { Ast.Int i }
+| f = FLOAT
+  { Ast.Float f }
+| TRUE
+  { Ast.Bool true }
+| FALSE
+  { Ast.Bool false }
+| LPAREN e = expr RPAREN
+  { e }
+;
+
+param:
+/* a:Int
+   b:() */
+| id = IDENT COLON ty = ty_simple
+  { (id,ty) }
+;
+
+/* Int
+   Bool
+   () */
 ty_simple:
-| ty = TTYPE { ty }
-| LPAREN RPAREN { "Unit" }
-;
-
-ty_list: { [] }
-| ty = ty_simple { [ty] }
-| tl = ty_list ARROW ty = ty_simple { List.append tl [ty] }
-;
-
-/*simple_fn:
-| FN id = IDENT LBRACE e = expr RBRACE {
-    let fn = Function (id, [], e)
-  }
-;
-*/
-
-/*param_list:
- { [] }
-| p = param pl = param_list { p :: pl }
-;
-
-param: id = IDENT { id }*/
-
-arith:
-| e1 = expr PLUS e2 = expr {
-    let result = Ast.Binary ('+', e1, e2) in
-    dump_value (Codegen.codegen_expr result);
-    result
-  }
-| e1 = expr MINUS e2 = expr {
-    let result = Ast.Binary ('-', e1, e2) in
-    dump_value (Codegen.codegen_expr result);
-    result
-  }
-| e1 = expr TIMES e2 = expr {
-    let result = Ast.Binary ('*', e1, e2) in
-    dump_value (Codegen.codegen_expr result);
-    result
-  }
-| e1 = expr DIV e2 = expr {
-    let result = Ast.Binary ('/', e1, e2) in
-    dump_value (Codegen.codegen_expr result);
-    result
-  }
-| e1 = expr MOD e2 = expr {
-    let result = Ast.Binary ('%', e1, e2) in
-    dump_value (Codegen.codegen_expr result);
-    result
-  }
-| MINUS e = expr %prec UMINUS {
-    let result = Std.unary_minus e in
-    dump_value (Codegen.codegen_expr result);
-    result
-  }
-;
-
-factor:
-| i = INT {
-    dump_value (Codegen.codegen_expr i);
-    i
-  }
-| f = FLOAT {
-    dump_value (Codegen.codegen_expr f);
-    f
-  }
-| TRUE {
-    let b = Ast.Bool true in
-    dump_value (Codegen.codegen_expr b);
-    b
-  }
-| FALSE { let b = Ast.Bool false in
-    dump_value (Codegen.codegen_expr b);
-    b
-  }
+| ty = TTYPE
+  { ty }
+| LPAREN RPAREN
+  { "Unit" }
 ;

@@ -43,7 +43,10 @@ let main () =
     []
 ;;
 
-let _ = Printexc.print main ();;
+(* get the AST *)
+let ast = main ();;
+
+Printf.printf "%d\n" (List.length ast);;
 
 (* dump all of the generated code *)
 dump_module Codegen.the_module
