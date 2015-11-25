@@ -13,13 +13,14 @@ Iris uses `ocamllex` for lexing, and `menhir` for parsing. You will also need to
 Install `menhir`:
 
 ```bash
-opam install menhir
+$ opam install menhir
 ```
 
 Install `llvm`:
 
 ```bash
-opam install llvm
+$ brew install llvm
+$ opam install llvm
 ```
 
 ## Run the Llvm top level
@@ -29,14 +30,22 @@ opam install llvm
 To run it:
 
 ```bash
-./llvmutop
+$ ./llvmutop
 ```
 
 ## Build and run executable
 
 ```bash
-make
-./iris.native
+$ make
+$ ./iris.native
+```
+
+## Useful notes
+
+It can be useful to symlink some of the LLVM tools:
+
+```bash
+$ sudo ln -s /usr/local/Cellar/llvm/3.4/bin/llc /usr/bin/llc
 ```
 
 ## Contributing
