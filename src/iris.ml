@@ -91,3 +91,5 @@ let main () =
     Printf.eprintf "At line:%d, col:%d syntax error.\n%!" pos.pos_lnum (pos.pos_bol + 1);
     ()
 ;;
+
+let _ = main ();;
