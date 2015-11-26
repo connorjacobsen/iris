@@ -13,6 +13,16 @@ let int_type = i32_type context
 let float_type = double_type context
 let bool_type = i1_type context
 
+let int_of_bool = function
+  | false -> 0
+  | true -> 1
+
+(* lookup a function or throw an exception *)
+let lookupf_exn name =
+  match lookup_function name the_module with
+  | Some v -> v
+  | None -> raise (Error ("Unknown function: " ^ name))
+
 (* converts "Int" to iris_int_type, "()" to void_type, etc. *)
 let iris_type_from_string = function
   | "Int" -> int_type
@@ -69,8 +79,7 @@ let mod_op lhs rhs =
 
 let rec codegen_expr = function
   | Ast.Int i -> const_int int_type i
-  | Ast.Bool b ->
-    if b then const_int bool_type 1 else const_int bool_type 0
+  | Ast.Bool b -> const_int bool_type (int_of_bool b)
   | Ast.Float f -> const_float float_type f
   | Ast.Binary (op, lhs, rhs) ->
     let lhs_val = codegen_expr lhs in
@@ -129,13 +138,8 @@ let rec codegen_expr = function
 
     try
       let ret_val = codegen_expr body in
-
       (* Finish off the function *)
       let _ = build_ret ret_val builder in
-
-      (* Validate the generated code, checking for consistency. *)
-      Llvm_analysis.assert_valid_function the_function;
-
       the_function
     with e ->
       delete_function the_function;

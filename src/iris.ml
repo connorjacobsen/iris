@@ -22,31 +22,72 @@ SOFTWARE. *)
 
 open Lexing
 open Llvm
+open Llvm_executionengine
+open Llvm_target
+open Llvm_scalar_opts
+open Ctypes
+open Box
 
-let rec print_list lst =
-  match lst with
-  | [] -> ()
-  | el :: rst -> print_int el ; print_string " " ; print_list rst
+(* Create the JIT Compiler *)
+let _ = initialize ()
+let the_execution_engine = Llvm_executionengine.create Codegen.the_module
+let the_fpm = PassManager.create_function Codegen.the_module
+
+let validate_and_optimize f =
+  (* Validate generated LLVM code *)
+  Llvm_analysis.assert_valid_function f;
+  (* Optimize function *)
+  ignore (PassManager.run_function f the_fpm)
+
+(* Run a function *)
+let run_f f =
+  let ty = Foreign.funptr (void @-> returning (ptr_opt cvalue_t)) in
+  let mainf = get_function_address (value_name f) ty the_execution_engine in
+  let cptr = mainf () in
+  match cptr with
+  | None -> IrisUnit (* raise error *)
+  | Some p -> unbox_value !@p (* may need to customize here too *)
+
+let main_loop ast =
+  (* Do simple "peephole" optimizations and bit-twiddling *)
+  add_instruction_combination the_fpm;
+
+  (* Reassociate expressions *)
+  add_reassociation the_fpm;
+
+  (* Eliminate common subexpressions *)
+  add_gvn the_fpm;
+
+  (* Simplify the control flow graph (deleting unreachable blocks, etc). *)
+  add_cfg_simplification the_fpm;
+
+  ignore (PassManager.initialize the_fpm);
+
+  (* may need to generate IR code here *)
+
+  (* Recurse through the AST and generate & execute code *)
+  List.iter (fun expr ->
+    let llexpr = Codegen.codegen_expr expr in
+    print_string "Evaluated to: ";
+    Box.print_value (run_f llexpr);
+    print_newline ()
+  ) ast;
+
+  (* dump all of the generated code *)
+  dump_module Codegen.the_module
 ;;
 
 let main () =
   let filebuf = Lexing.from_channel stdin in
   try
-    Parser.main Lexer.read filebuf
+    let ast = Parser.main Lexer.read filebuf in
+    main_loop ast
   with
   | Lexer.Error msg ->
     Printf.eprintf "%s%!" msg;
-    []
+    ()
   | Parser.Error ->
     let pos = Lexing.lexeme_end_p filebuf in
     Printf.eprintf "At line:%d, col:%d syntax error.\n%!" pos.pos_lnum (pos.pos_bol + 1);
-    []
+    ()
 ;;
-
-(* get the AST *)
-let ast = main ();;
-
-Printf.printf "%d\n" (List.length ast);;
-
-(* dump all of the generated code *)
-dump_module Codegen.the_module

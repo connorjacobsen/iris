@@ -13,16 +13,16 @@ enum iris_value_type {
   IRIS_T_FLOAT,
   IRIS_T_BOOL,
   IRIS_T_CHAR,
-  IRIS_T_STRING,
   IRIS_T_FUNCTION,
+  IRIS_T_UNIT,
 };
 
 #define T_INT IRIS_T_INT
 #define T_FLOAT IRIS_T_FLOAT
 #define T_BOOL IRIS_T_BOOL
 #define T_CHAR IRIS_T_CHAR
-#define T_STRING IRIS_T_STRING
 #define T_FUNCTION IRIS_T_FUNCTION
+#define T_UNIT IRIS_T_UNIT
 
 /*
  * Consider using a union instead.
@@ -33,7 +33,6 @@ struct value_t {
   double float_val;   /* Iris Float value */
   bool bool_val;      /* Iris Bool value */
   char char_val;      /* Iris Char value */
-  char *string_val;   /* Iris String value */
 
   /* Iris Function value */
   struct value_t *(*function_val)(struct value_t *);
@@ -51,7 +50,7 @@ print_value(struct value_t *v)
   /* avoid segfaults */
   if (v == NULL)
   {
-    printf("NONE");
+    printf("Unit = ()");
     return;
   }
 
@@ -69,44 +68,43 @@ print_value(struct value_t *v)
     case T_CHAR:
       printf("Char = %c", v->char_val);
       break;
-    case T_STRING:
-      printf("String = %s", v->string_val);
-      break;
     case T_FUNCTION:
       printf("Function = <fun>");
       break;
+    case T_UNIT:
+      printf("Unit = ()");
+      break;
     default:
-      printf("Unknown type: %s", v->type_val);
+      printf("Unknown type: %d", v->type_val);
   }
 }
 
 value
 box_value(struct value_t *v)
 {
+  value int_block = caml_alloc(1, T_INT);
+  value float_block = caml_alloc(1, T_FLOAT);
+  value float_value = caml_alloc(1, Double_tag);
+  value bool_block = caml_alloc(1, T_BOOL);
+  value char_block = caml_alloc(1, T_CHAR);
+
   switch (v->type_val)
   {
     case T_INT:
-      value int_block = caml_alloc(1, T_INT);
       Store_field(int_block, 0, Val_long(v->int_val));
       return int_block;
     case T_FLOAT:
-      value float_block = caml_alloc(1, T_FLOAT);
-      value float_value = caml_alloc(1, Double_tag);
       Store_double_field(float_value, 0, v->float_val);
       Store_field(float_block, 0, float_value);
       return float_block;
     case T_BOOL:
-      value bool_block = caml_alloc(1, T_BOOL);
-      Store_field(bool_block, Val_int(!!v->bool_val));
+      Store_field(bool_block, 0, Val_int(!!v->bool_val));
       return bool_block;
     case T_CHAR:
-      value char_block = caml_alloc(1, T_CHAR);
       Store_field(char_block, 0, Val_int(v->char_val));
       return char_block;
-    case T_STRING:
-      value string_block = caml_alloc(1, T_STRING);
-      Store_field(string_block, 0, caml_copy_string(v->string_val));
-      return string_block;
+    case T_UNIT:
+      return Val_int(0);
     default:
       printf("Don't know how to box type: %d", v->type_val);
       exit(1); /* exit with error */

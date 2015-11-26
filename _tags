@@ -1,6 +1,6 @@
+<src>: include
 true: use_menhir
 true: thread,debug
-true: package(core)
 <*.{byte,native}>: g++, use_llvm, use_llvm_analysis
 <*.{byte,native}>: use_llvm_executionengine, use_llvm_target
 <*.{byte,native}>: use_llvm_scalar_opts, use_bindings

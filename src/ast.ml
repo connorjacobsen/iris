@@ -9,6 +9,9 @@ type expr =
   | Int of int      (** integer constant *)
   | Float of float  (** float constant *)
   | Bool of bool    (** boolean constant *)
+  | Char of char    (** character constant *)
+  
+  | Unit
 
   | Id of name          (** Identifier *)
   | Def of name * expr  (** definition of immutable binding *)
