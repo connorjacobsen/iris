@@ -30,6 +30,20 @@ let iris_type_from_string = function
   | "Bool" -> bool_type
   | _ -> int_type (* will change *)
 
+let string_of_iris_type = function
+  | int_type -> "Int"
+  | float_type -> "Float"
+  | bool_type -> "Bool"
+  | _ -> raise (Error ("Unknown type"))
+
+let iris_type_of llval =
+  match type_of llval with
+  | float_type -> float_type
+  | bool_type -> bool_type
+  | int_type -> int_type
+  | _ -> raise (Error ("Unknown type"))
+
+
 (* Should clean these up at some point *)
 
 let add_op lhs rhs =
@@ -94,52 +108,51 @@ let rec codegen_expr = function
       | _ -> raise (Error "invalid infix operator")
     end
   | Ast.Id id ->
-    (try
-      let obj = Symtbl.find id in
-      match obj.value with
-      | None -> raise (Error "Uninitialized binding")
-      | Some v -> v
-    with
-      | Not_found -> raise (Error "unknown variable name"))
-  | Ast.Function (name, params, types, body) ->
-    (* get pairs of names and types for the function args *)
-    let args = Array.of_list params in
-    let types = Array.of_list types in
+    (try Hashtbl.find named_values id with
+      | Not_found -> raise (Error ("unknown variable name: " ^ id)))
+
+let codegen_proto = function
+  | Ast.Prototype (name, args, types, ret_ty) ->
     let param_arr = Array.make (Array.length args) int_type in
     for i = 0 to Array.length args - 1 do
       param_arr.(i) <- (iris_type_from_string types.(i))
     done;
     (* make the function type *)
     let ft =
-      function_type (iris_type_from_string types.(Array.length types - 1)) param_arr
+      function_type (iris_type_from_string ret_ty) param_arr
     in
     let f =
       match lookup_function name the_module with
       | None -> declare_function name ft the_module
-
-      (* If 'f' conflicted, there was already a function named 'name'. For
-         now, this is an error. Later it will be expanded to all overloading
-         of functions. *)
-      | Some f -> raise (Error "redefinition of function")
+      | Some f -> f
     in
 
     (* Set names for all arguments *)
     Array.iteri (fun i a ->
       let n = args.(i) in
       set_value_name n a;
-      Symtbl.add n [types.(i)] (Some a);
-    ) (Llvm.params f);
-    Symtbl.dump_keys ();
-    f;
-    let the_function = f in
-    (* Create a new basic block to start insertion into *)
+      (* Symtbl.add n [types.(i)] (Some a); *)
+      Hashtbl.add named_values n a;
+    ) (params f);
+    f
+
+let codegen_func = function
+  | Ast.Function (proto, body) ->
+    Hashtbl.clear named_values;
+    let the_function = codegen_proto proto in
+
     let bb = append_block context "entry" the_function in
     position_at_end bb builder;
 
     try
       let ret_val = codegen_expr body in
-      (* Finish off the function *)
+
+      (* Finish the function *)
       let _ = build_ret ret_val builder in
+
+      (* Validate the generated code, preventing runtime segfaults *)
+      Llvm_analysis.assert_valid_function the_function;
+
       the_function
     with e ->
       delete_function the_function;

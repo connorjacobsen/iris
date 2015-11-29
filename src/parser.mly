@@ -80,11 +80,13 @@ expr:
   { Ast.Binary ('%', e1, e2) }
 | IF cond = expr THEN e1 = expr ELSE e2 = expr END
   { Ast.If (cond, e1, e2) }
-| FN id = IDENT LPAREN pl = param_list RPAREN COLON ret_ty = ty_simple LBRACKET e = expr RBRACKET
+| FN id = IDENT LPAREN pl = param_list RPAREN COLON ret_ty = ty_simple LBRACKET body = expr RBRACKET
   { (* param_list is of form: [ (name, type), (name, type), ... ] *)
     let (params, types) = List.split pl in
-    let params = List.append params [ret_ty] in
-    Ast.Function (id, params, types, e)
+    let params = Array.of_list params in
+    let types = Array.of_list types in
+    let proto = Ast.Prototype (id, params, types, ret_ty) in
+    Ast.Function (proto, body)
   }
 ;
 

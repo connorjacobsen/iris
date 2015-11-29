@@ -27,11 +27,27 @@ open Llvm_target
 open Llvm_scalar_opts
 open Ctypes
 open Box
+open Codegen
 
 (* Create the JIT Compiler *)
 let _ = initialize ()
 let the_execution_engine = Llvm_executionengine.create Codegen.the_module
 let the_fpm = PassManager.create_function Codegen.the_module
+let anon_func_count = ref (-1)
+
+let generate_name =
+  fun () ->
+    incr anon_func_count;
+    "anon" ^ string_of_int !anon_func_count
+
+let anonymous_function_gen body =
+  let ty = string_of_iris_type (iris_type_of body) in
+  let the_function =
+    let proto = Ast.Prototype(generate_name (), [| |], [| |], ty) in
+
+    Ast.Function (proto, body)
+  in
+  codegen_func the_function
 
 let validate_and_optimize f =
   (* Validate generated LLVM code *)
@@ -47,6 +63,27 @@ let run_f f =
   match cptr with
   | None -> IrisUnit (* raise error *)
   | Some p -> unbox_value !@p (* may need to customize here too *)
+
+(* Top level expressions must be a variable declaration or a function.
+   Iris is not a scripting language, so non-toplevel expressions can't
+   just be randomly hanging out. Plus, LLVM doesn't like nameless functions,
+   which is what an orphaned expression would be. *)
+let top_level_expr tlexpr =
+  match tlexpr with
+  | Ast.Def (name, expr) | Ast.Mut (name, expr) ->
+    let the_function = anonymous_function_gen expr in
+    let bb = append_block context "entry" the_function in
+    position_at_end bb builder;
+    let llexpr = codegen_expr expr in
+    let llexpr = build_load llexpr "llexpr" builder in
+    let global = define_global name llexpr the_module in
+    ignore (build_store llexpr global builder);
+    ignore (build_ret llexpr builder);
+    the_function
+  | Ast.Function (proto, body) -> codegen_func Ast.Function (proto, body)
+  (* | Call (name, args) -> *)
+  | _ -> raise (Error "Invalid top level expression")
+
 
 let main_loop ast =
   (* Do simple "peephole" optimizations and bit-twiddling *)
@@ -65,17 +102,19 @@ let main_loop ast =
 
   (* may need to generate IR code here *)
 
-  (* Recurse through the AST and generate & execute code *)
+  (* Recurse through the AST and generate top level expressions *)
+  let tlexprs = List.map (fun expr -> top_level_expr expr) ast in
+  List.iter (fun fn -> validate_and_optimize fn) tlexprs;
+
+  (* Execute code *)
   List.iter (fun expr ->
-    let llexpr = Codegen.codegen_expr expr in
     print_string "Evaluated to: ";
-    Box.print_value (run_f llexpr);
+    Box.print_value (run_f expr);
     print_newline ()
-  ) ast;
+  ) tlexprs;
 
   (* dump all of the generated code *)
   dump_module Codegen.the_module
-;;
 
 let main () =
   let filebuf = Lexing.from_channel stdin in
