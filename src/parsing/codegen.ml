@@ -36,6 +36,7 @@ let string_of_iris_type = function
   | bool_type -> "Bool"
   | _ -> raise (Error ("Unknown type"))
 
+(* Needs refactoring *)
 let iris_type_of llval =
   match type_of llval with
   | float_type -> float_type

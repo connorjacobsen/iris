@@ -1,5 +1,7 @@
 <src>: include
 <src/libbox>: include
+<src/common>: include
+<src/parsing>: include
 true: use_menhir
 true: thread,debug
 <*.{byte,native}>: g++, use_llvm, use_llvm_analysis

@@ -26,6 +26,7 @@ open Llvm_executionengine
 open Llvm_target
 open Llvm_scalar_opts
 open Ctypes
+open Ast_helper
 open Box
 open Codegen
 
@@ -41,7 +42,7 @@ let generate_name =
     "anon" ^ string_of_int !anon_func_count
 
 let anonymous_function_gen body =
-  let ty = string_of_iris_type (iris_type_of body) in
+  let ty = string_of_iris_expr body in
   let the_function =
     let proto = Ast.Prototype(generate_name (), [| |], [| |], ty) in
 
@@ -80,7 +81,7 @@ let top_level_expr tlexpr =
     ignore (build_store llexpr global builder);
     ignore (build_ret llexpr builder);
     the_function
-  | Ast.Function (proto, body) -> codegen_func Ast.Function (proto, body)
+  | Ast.Function (proto, body) -> codegen_func (Ast.Function (proto, body))
   (* | Call (name, args) -> *)
   | _ -> raise (Error "Invalid top level expression")
 
