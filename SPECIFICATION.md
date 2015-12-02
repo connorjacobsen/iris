@@ -751,9 +751,9 @@ from String import startsWith as sw, String as S
 One of the most common traits in Iris is `Eq`, which provides methods for determining equality of two values.
 
 ```
-trait Eq a {
-  (==)(a, b) :: 'a -> 'b -> Bool
-  (!=)(a, b) :: 'a -> 'b -> Bool
+trait Eq 'a {
+  (==) :: 'a -> 'a -> Bool
+  (!=) :: 'a -> 'a -> Bool
 }
 ```
 
@@ -763,8 +763,13 @@ The type `Complex`, which represents a complex number and implements the `Eq` tr
 type Complex = (real:Float, img:Float)
 
 Complex implements Eq {
-  (==)(a:Complex, b:Complex) = (a.real == b.real) and (a.img == b.img)
-  (!=)(a:Complex, b:Complex) = not (a == b)
+  (==)(a, b) {
+    (a.real == b.real) and (a.img == b.img)
+  }
+
+  (!=)(a, b) {
+    not (a == b)
+  }
 }
 ```
 
