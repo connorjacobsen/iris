@@ -65,6 +65,8 @@ main:
 statement:
 | d = def SEMICOLON
   { d }
+| f = func
+  { f }
 | e = expr SEMICOLON
   { e }
 ;
@@ -77,6 +79,23 @@ def:
 | id = IDENT
   { Ast.Id id }
 ;
+
+func:
+| FN id = IDENT COLON ret_ty = ty_simple LBRACKET body = expr RBRACKET
+  {
+    Printf.fprintf stdout "Name: %s, ReturnType: %s\n" id ret_ty;
+    flush stdout;
+    let proto = Ast.Prototype (id, [| |], [| |], ret_ty) in
+    Ast.Function (proto, body)
+  }
+| FN id = IDENT LPAREN pl = param_list RPAREN COLON ret_ty = ty_simple LBRACKET body = expr RBRACKET
+  { (* param_list is of form: [ (name, type), (name, type), ... ] *)
+    let (params, types) = List.split pl in
+    let params = Array.of_list params in
+    let types = Array.of_list types in
+    let proto = Ast.Prototype (id, params, types, ret_ty) in
+    Ast.Function (proto, body)
+  }
 
 /* a:Int, b:(), c:Int */
 param_list: { [] }
@@ -103,14 +122,6 @@ expr:
   { Ast.Binary ('%', e1, e2) }
 | IF cond = expr THEN e1 = expr ELSE e2 = expr END
   { Ast.If (cond, e1, e2) }
-| FN id = IDENT LPAREN pl = param_list RPAREN COLON ret_ty = ty_simple LBRACKET body = expr RBRACKET
-  { (* param_list is of form: [ (name, type), (name, type), ... ] *)
-    let (params, types) = List.split pl in
-    let params = Array.of_list params in
-    let types = Array.of_list types in
-    let proto = Ast.Prototype (id, params, types, ret_ty) in
-    Ast.Function (proto, body)
-  }
 ;
 
 simple_expr:
@@ -130,7 +141,11 @@ param:
 /* a:Int
    b:() */
 | id = IDENT COLON ty = ty_simple
-  { (id,ty) }
+  {
+    Printf.fprintf stdout "Param: %s, Type: %s\n" id ty;
+    flush stdout;
+    (id,ty)
+  }
 ;
 
 /* Int

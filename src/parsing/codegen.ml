@@ -137,6 +137,8 @@ let rec codegen_expr = function
 
 let codegen_proto = function
   | Ast.Prototype (name, args, types, ret_ty) ->
+    Printf.fprintf stdout "Name: %s, Return type: %s\n" name ret_ty;
+    flush stdout;
     let param_arr = Array.make (Array.length args) int_type in
     for i = 0 to Array.length args - 1 do
       param_arr.(i) <- (iris_type_from_string types.(i))
@@ -147,7 +149,8 @@ let codegen_proto = function
     in
     let f =
       match lookup_function name the_module with
-      | None -> declare_function name ft the_module
+      | None ->
+        declare_function name ft the_module
       | Some f -> f
     in
 

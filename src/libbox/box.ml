@@ -51,9 +51,16 @@ type iris_value =
 external unbox_value: 'a -> iris_value = "unbox_value"
 
 let unbox_value value =
+  Printf.fprintf stdout "Visited E\n";
+  flush stdout;
   let t = Int32.to_int (getf value iris_type) in
+  Printf.fprintf stdout "Visited F\n";
+  flush stdout;
   match t with
-  | 0 -> IrisInt (Int64.to_int (getf value iris_int))
+  | 0 ->
+    Printf.fprintf stdout "Visited G\n";
+    flush stdout;
+    IrisInt (Int64.to_int (getf value iris_int))
   | 1 -> IrisFloat (getf value iris_float)
   | 2 -> IrisBool (bool_of_int (Char.code (getf value iris_bool)))
   | 3 -> IrisChar (getf value iris_char)
@@ -65,6 +72,7 @@ let print_value value = function
   | IrisBool b -> print_string (string_of_bool b)
   | IrisChar c -> print_char c
   | IrisUnit -> print_string "()"
+  | _ -> raise (Error ("Unknown iris type box"))
 
 let iris_value_to_ast value = function
   | IrisInt i -> Ast.Int i

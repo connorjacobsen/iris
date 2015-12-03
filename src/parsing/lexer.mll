@@ -40,7 +40,7 @@ let lchar = ['a'-'z']
 let uchar = ['A'-'Z']
 let sym = ['!' '@' '$' '%' '^' '&' '*' '_' '-' '+' '?' '|']
 let ident = lchar (lchar|uchar|sym)*
-let tyname = uchar lchar* '?'?
+let tyname = uchar (lchar|uchar)* '?'?
 
 let white = [' ' '\t']+
 let newline = '\r' | '\n' | "\r\n"

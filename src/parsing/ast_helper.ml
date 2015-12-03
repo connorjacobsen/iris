@@ -21,8 +21,10 @@
  * SOFTWARE.
  *)
 
-let string_of_iris_expr = function
+let rec string_of_iris_expr = function
   | Ast.Int _ -> "Int"
   | Ast.Float _ -> "Float"
   | Ast.Bool _ -> "Bool"
+  | Ast.Char _ -> "Char"
   | Ast.Unit -> "Unit"
+  | Ast.Binary (_, x, y) -> string_of_iris_expr x
