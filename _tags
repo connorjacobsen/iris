@@ -2,7 +2,8 @@
 <src/libbox>: include
 <src/common>: include
 <src/parsing>: include
-true: use_menhir
+<src/typeing>: include
+true: use_menhir, explain
 true: thread,debug
 <*.{byte,native}>: g++, use_llvm, use_llvm_analysis
 <*.{byte,native}>: use_llvm_executionengine, use_llvm_target

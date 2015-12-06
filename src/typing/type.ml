@@ -21,6 +21,8 @@
  * SOFTWARE.
  *)
 
+exception Type_error
+
 type t =
   | Unit
   | Bool
@@ -49,3 +51,18 @@ let rec to_string t =
   | Tuple tys -> sprintf "Tuple(%a)" to_strings tys
   | List ty -> sprintf "[%ty]" to_string ty
 and to_strings tys = list_to_string to_string ", " tys
+
+(** Generate the correct LLVM representation for the Iris type.
+    May eventually need to be recursive. *)
+let to_llvm = function
+  | Int -> Codegen.int_type
+  | Float -> Codegen.float_type
+  | Bool -> Codegen.bool_type
+  | _ -> raise Type_error
+
+(** Convert an LLVM type to an Iris type. *)
+let of_llvm = function
+  | Codegen.int_type -> Int
+  | Codegen.float_type -> Float
+  | Codegeb.bool_type -> Bool
+  | _ -> raise Type_error
