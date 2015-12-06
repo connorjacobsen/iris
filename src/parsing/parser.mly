@@ -71,38 +71,52 @@ statement:
   { e }
 ;
 
+expr_list:
+| e = expr
+  { [e] }
+| el = expr_list SEMICOLON e = expr
+  { el @ [e] }
+;
+
 def:
 | LET id = IDENT ASSIGN e = expr
   { Ast.Def (id, e) }
 | LET MUT id = IDENT ASSIGN e = expr
   { Ast.Mut (id, e) }
-| id = IDENT
-  { Ast.Id id }
 ;
 
 func:
-| FN id = IDENT COLON ret_ty = ty_simple LBRACKET body = expr RBRACKET
+| FN id = IDENT COLON ret_ty = ty_simple LBRACKET body = expr_list RBRACKET
   {
     Printf.fprintf stdout "Name: %s, ReturnType: %s\n" id ret_ty;
     flush stdout;
     let proto = Ast.Prototype (id, [| |], [| |], ret_ty) in
-    Ast.Function (proto, body)
+    Ast.Function (proto, (Array.of_list body))
   }
-| FN id = IDENT LPAREN pl = param_list RPAREN COLON ret_ty = ty_simple LBRACKET body = expr RBRACKET
+| FN id = IDENT LPAREN pl = param_list RPAREN COLON ret_ty = ty_simple LBRACKET body = expr_list RBRACKET
   { (* param_list is of form: [ (name, type), (name, type), ... ] *)
     let (params, types) = List.split pl in
     let params = Array.of_list params in
     let types = Array.of_list types in
     let proto = Ast.Prototype (id, params, types, ret_ty) in
-    Ast.Function (proto, body)
+    Ast.Function (proto, (Array.of_list body))
   }
 
 /* a:Int, b:(), c:Int */
 param_list: { [] }
 | p = param
-  { [p] }
-| pl = param_list COMMA p = param
-  { List.append pl [p] }
+  { match p with | None -> [] | Some pp -> [pp] }
+| p = param COMMA pl = param_list
+  { match p with
+    | None -> [] @ pl
+    | Some pp -> [pp] @ pl }
+;
+
+param: { None }
+/* a:Int
+   b:() */
+| id = IDENT COLON ty = ty_simple
+  { Some (id,ty) }
 ;
 
 expr:
@@ -120,8 +134,8 @@ expr:
   { Ast.Binary ('/', e1, e2) }
 | e1 = expr MOD e2 = expr
   { Ast.Binary ('%', e1, e2) }
-| IF cond = expr THEN e1 = expr ELSE e2 = expr END
-  { Ast.If (cond, e1, e2) }
+| IF cond = expr THEN e1 = expr_list ELSE e2 = expr_list END
+  { Ast.If (cond, (Array.of_list e1), (Array.of_list e2)) }
 ;
 
 simple_expr:
@@ -135,17 +149,10 @@ simple_expr:
   { Ast.Bool false }
 | LPAREN e = expr RPAREN
   { e }
-;
-
-param:
-/* a:Int
-   b:() */
-| id = IDENT COLON ty = ty_simple
-  {
-    Printf.fprintf stdout "Param: %s, Type: %s\n" id ty;
+| id = IDENT
+  { Printf.fprintf stdout "Found Ident: %s\n" (Ast.name_to_string id);
     flush stdout;
-    (id,ty)
-  }
+    Ast.Id id }
 ;
 
 /* Int

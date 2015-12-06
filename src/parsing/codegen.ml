@@ -172,7 +172,9 @@ let codegen_func = function
     position_at_end bb builder;
 
     try
-      let ret_val = codegen_expr body in
+      let expression_count = Array.length body in
+      let evaluated_body = Array.map (fun i -> codegen_expr i) body in
+      let ret_val = evaluated_body.(expression_count-1) in
 
       (* Finish the function *)
       let _ = build_ret ret_val builder in

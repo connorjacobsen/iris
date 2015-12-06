@@ -30,7 +30,7 @@ open Ctypes
 open Box
 open Codegen
 
-val anonymous_function_gen: Ast.expr -> Llvm.llvalue
+val anonymous_function_gen: Ast.expr array -> Llvm.llvalue
 
 val validate_and_optimize: Llvm.llvalue -> unit
 

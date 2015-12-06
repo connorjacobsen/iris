@@ -47,7 +47,7 @@ type expr =
   (* function call *)
   | Call of string * expr array
   (* Function definition *)
-  | Function of proto * expr
+  | Function of proto * expr array
 
   (* variant for Binary operations *)
   (* will eventually be replaced by functions *)
@@ -55,4 +55,4 @@ type expr =
   | Unary of char * expr
 
   (* control flow *)
-  | If of expr * expr * expr
+  | If of expr * expr array * expr array

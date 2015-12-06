@@ -42,7 +42,8 @@ let generate_name =
     "anon" ^ string_of_int !anon_func_count
 
 let anonymous_function_gen body =
-  let ty = string_of_iris_expr body in
+  let last_expr = body.((Array.length body) - 1) in
+  let ty = string_of_iris_expr last_expr in
   let the_function =
     let name = generate_name () in
     let proto = Ast.Prototype(name, [| |], [| |], ty) in
@@ -82,7 +83,7 @@ let run_f f =
 let top_level_expr tlexpr =
   match tlexpr with
   | Ast.Def (name, expr) | Ast.Mut (name, expr) ->
-    let the_function = anonymous_function_gen expr in
+    let the_function = anonymous_function_gen [| expr |] in
     (* let bb = append_block context "entry" the_function in
     Printf.fprintf stdout "Made it A\n";
     flush stdout;
