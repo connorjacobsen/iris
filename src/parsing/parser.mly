@@ -63,8 +63,6 @@ main:
 
 /* For now, expressions end with a semicolon. Later they will end with a newline. */
 statement:
-| d = def SEMICOLON
-  { d }
 | f = func
   { f }
 | e = expr SEMICOLON
@@ -80,7 +78,9 @@ expr_list:
 
 def:
 | LET id = IDENT ASSIGN e = expr
-  { Ast.Def (id, e) }
+  { Printf.fprintf stdout "Var: %s\n" id;
+    flush stdout;
+    Ast.Def (id, e) }
 | LET MUT id = IDENT ASSIGN e = expr
   { Ast.Mut (id, e) }
 ;
@@ -93,7 +93,7 @@ func:
     let proto = Ast.Prototype (id, [| |], [| |], ret_ty) in
     Ast.Function (proto, (Array.of_list body))
   }
-| FN id = IDENT LPAREN pl = param_list RPAREN COLON ret_ty = ty_simple LBRACKET body = expr_list RBRACKET
+| FN id = IDENT LPAREN pl = param_list_ety RPAREN COLON ret_ty = ty_simple LBRACKET body = expr_list RBRACKET
   { (* param_list is of form: [ (name, type), (name, type), ... ] *)
     let (params, types) = List.split pl in
     let params = Array.of_list params in
@@ -103,13 +103,24 @@ func:
   }
 
 /* a:Int, b:(), c:Int */
-param_list: { [] }
-| p = param
+param_list_ety: { [] }
+| pl = param_list
+  { pl }
+;
+
+param_list:
+/*| p = param
   { match p with | None -> [] | Some pp -> [pp] }
 | p = param COMMA pl = param_list
   { match p with
     | None -> [] @ pl
-    | Some pp -> [pp] @ pl }
+    | Some pp -> [pp] @ pl }*/
+  | p = param
+    { match p with | None -> [] | Some pp -> [pp] }
+  | pl = param_list COMMA p = param
+    { match p with
+      | None -> pl
+      | Some pp -> pl @ [pp] }
 ;
 
 param: { None }
@@ -120,6 +131,8 @@ param: { None }
 ;
 
 expr:
+| d = def
+  { d }
 | e = simple_expr
   { e }
 | MINUS e = expr %prec UMINUS

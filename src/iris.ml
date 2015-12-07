@@ -108,6 +108,9 @@ let top_level_expr tlexpr =
 
 
 let main_loop ast =
+  (* Promote allocas to registers *)
+  add_memory_to_register_promotion the_fpm;
+
   (* Do simple "peephole" optimizations and bit-twiddling *)
   add_instruction_combination the_fpm;
 

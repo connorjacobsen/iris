@@ -1,3 +1,4 @@
-fn main(a:Int, b:Int) : Int {
+fn main(a:Int) : Int {
+  let b = 1;
   a + b
 }

@@ -67,6 +67,30 @@ let iris_type_of llval =
   | int_type -> int_type
   | _ -> raise (Error ("Unknown type"))
 
+(* Create an alloca instruction in the entry block of a function. This is
+   used for mutable variables, etc. *)
+let create_entry_block_alloca the_function name ty =
+  let builder = builder_at context (instr_begin (entry_block the_function)) in
+  build_alloca ty name builder
+
+(* Create an alloca for each argument and register the argument in the symbol
+   table so that references to it will succeed. *)
+let create_argument_allocas the_function proto =
+  let (args, tys) = match proto with
+    | Ast.Prototype (_, args, tys, _) -> (args, tys)
+  in
+  Array.iteri (fun i ai ->
+    let name = args.(i) in
+    let ty = (iris_type_from_string tys.(i)) in
+    (* Allocate the stack space. *)
+    let alloca = create_entry_block_alloca the_function name ty in
+
+    (* Store the initial value into the alloca. *)
+    ignore(build_store ai alloca builder);
+
+    (* Add args to the symbol table. *)
+    Hashtbl.add named_values name alloca;
+  ) (params the_function)
 
 (* Should clean these up at some point *)
 
@@ -132,8 +156,44 @@ let rec codegen_expr = function
       | _ -> raise (Error "invalid infix operator")
     end
   | Ast.Id id ->
-    (try Hashtbl.find named_values id with
-      | Not_found -> raise (Error ("unknown variable name: " ^ id)))
+    let v = try Hashtbl.find named_values id with
+      | Not_found -> raise (Error ("unknown variable name: " ^ id))
+    in
+    Printf.fprintf stdout "Variable to load: %s\n" id;
+    flush stdout;
+    (* Load the value from the stack *)
+    build_load v id builder
+  (* treat the same for now *)
+  | Ast.Def (id, value) | Ast.Mut (id, value) ->
+    let old_bindings = ref [] in
+    let the_function = block_parent (insertion_block builder) in
+
+    (* Register the variable and emit the initializer *)
+    let init_val = codegen_expr value in
+    let alloca = create_entry_block_alloca the_function id (iris_type_of init_val) in
+    ignore(build_store init_val alloca builder);
+
+    (* Remember the old variable binding so we can restore the binding
+       when we unrecurse. *)
+    begin
+      try
+        let old_value = Hashtbl.find named_values id in
+        old_bindings := (id, old_value) :: !old_bindings
+      with Not_found -> ()
+    end;
+
+    (* Remember this binding *)
+    Hashtbl.add named_values id alloca;
+
+    (* All vars are in scope, now codegen the body *)
+    let body_val = codegen_expr value in
+    (* Pop all our variables from scope. *)
+    List.iter (fun (name, old_value) ->
+      Hashtbl.add named_values name old_value
+    ) !old_bindings;
+
+    (* Return the body computation. *)
+    body_val
 
 let codegen_proto = function
   | Ast.Prototype (name, args, types, ret_ty) ->
@@ -172,6 +232,9 @@ let codegen_func = function
     position_at_end bb builder;
 
     try
+      (* Add all arguments to the symbol t able and create their allocas *)
+      create_argument_allocas the_function proto;
+      
       let expression_count = Array.length body in
       let evaluated_body = Array.map (fun i -> codegen_expr i) body in
       let ret_val = evaluated_body.(expression_count-1) in
