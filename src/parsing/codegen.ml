@@ -155,6 +155,64 @@ let rec codegen_expr = function
       | '%' -> mod_op lhs_val rhs_val
       | _ -> raise (Error "invalid infix operator")
     end
+  | Ast.If (cond, then_expr, else_expr) ->
+    let cond = codegen_expr cond in
+
+    (* Covert condition to a boolean value *)
+    let cond_val =
+      match (type_of cond) with
+      | bool_type -> build_icmp Icmp.Ne cond (const_int bool_type 0) "ifcond" builder
+      | int_type -> build_icmp Icmp.Ne cond (const_int int_type 0) "ifcond" builder
+      | float_type -> build_fcmp Fcmp.One cond (const_float float_type 0.0) "ifcond" builder
+    in
+
+    (* Determine the locations for the then and else blocks. *)
+    let start_bb = insertion_block builder in
+    let the_function = block_parent start_bb in
+    let then_bb = append_block context "then" the_function in
+
+    (* Emit 'then' value *)
+    position_at_end then_bb builder;
+    (* Evaluate each expression in the array of expressions, return the
+       value of the last expression. *)
+    let then_vals = Array.map (fun e -> codegen_expr e) then_expr in
+    let then_val = then_vals.((Array.length then_vals) - 1) in
+
+    (* Codegden of 'then' can change the current block, update then_bb for the
+       phi. We create a new name because one is used for the phi node, and the
+       other is used for the conditional branch. *)
+    let new_then_bb = insertion_block builder in
+
+    (* Emit 'else' value. *)
+    let else_bb = append_block context "else" the_function in
+    position_at_end else_bb builder;
+    (* Evaluate each expression in the array of expressions, return the
+       value of the last expression. *)
+    let else_vals = Array.map (fun e -> codegen_expr e) else_expr in
+    let else_val = else_vals.((Array.length else_vals) - 1) in
+
+    (* Codegen 'else' can change the current block, update else_bb for phi. *)
+    let new_else_bb = insertion_block builder in
+
+    (* Emit merge block *)
+    let merge_bb = append_block context "ifcont" the_function in
+    position_at_end merge_bb builder;
+    let incoming = [(then_val, new_then_bb); (else_val, new_else_bb)] in
+    let phi = build_phi incoming "iftmp" builder in
+
+    (* Return to the start block to add the cond branch. *)
+    position_at_end start_bb builder;
+    ignore (build_cond_br cond_val then_bb else_bb builder);
+
+    (* Set an unconditional branch at the end of the 'then' block and the 'else'
+       block to the 'merge' block. *)
+    position_at_end new_then_bb builder; ignore (build_br merge_bb builder);
+    position_at_end new_else_bb builder; ignore (build_br merge_bb builder);
+
+    (* Set the builder to the end of the merge block. *)
+    position_at_end merge_bb builder;
+
+    phi
   | Ast.Id id ->
     let v = try Hashtbl.find named_values id with
       | Not_found -> raise (Error ("unknown variable name: " ^ id))
@@ -171,7 +229,7 @@ let rec codegen_expr = function
     (* Register the variable and emit the initializer *)
     let init_val = codegen_expr value in
     let alloca = create_entry_block_alloca the_function id (iris_type_of init_val) in
-    ignore(build_store init_val alloca builder);
+    ignore (build_store init_val alloca builder);
 
     (* Remember the old variable binding so we can restore the binding
        when we unrecurse. *)
@@ -234,7 +292,7 @@ let codegen_func = function
     try
       (* Add all arguments to the symbol t able and create their allocas *)
       create_argument_allocas the_function proto;
-      
+
       let expression_count = Array.length body in
       let evaluated_body = Array.map (fun i -> codegen_expr i) body in
       let ret_val = evaluated_body.(expression_count-1) in

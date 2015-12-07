@@ -1,0 +1,8 @@
+fn main(a:Int) : Int {
+  let b = 42;
+  if a then
+    b
+  else
+    b + 1
+  end
+}

@@ -67,6 +67,10 @@ rule read = parse
   | "fn" { FN }
   | "True" { TRUE }
   | "False" { FALSE }
+  | "if" { IF }
+  | "else" { ELSE }
+  | "then" { THEN }
+  | "end" { END }
   | ident as sval { IDENT sval }
   | tyname as sval { TTYPE sval }
   | eof { EOF }
