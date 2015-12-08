@@ -1,0 +1,6 @@
+fn main : Int {
+  let x = 3;
+  for i in 0 to x {
+    i
+  }
+}

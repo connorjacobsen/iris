@@ -155,6 +155,73 @@ let rec codegen_expr = function
       | '%' -> mod_op lhs_val rhs_val
       | _ -> raise (Error "invalid infix operator")
     end
+  | Ast.For (var_name, start, end_val, body) ->
+    let the_function = block_parent (insertion_block builder) in
+
+    (* Emit the start code first *)
+    let start_val = codegen_expr start in
+
+    (* Create stack space for the variable in the entry block. *)
+    let alloca =
+      create_entry_block_alloca the_function  var_name (type_of start_val)
+    in
+
+    (* Store the value on the stack. *)
+    ignore (build_store start_val alloca builder);
+
+    (* Make a new basic block for the loop header, inserting after current block *)
+    let loop_bb = append_block context "loop" the_function in
+
+    (* Insert an explicit fall through from the current block to the loop_bb *)
+    ignore (build_br loop_bb builder);
+
+    (* Start insertion in loop_bb. *)
+    position_at_end loop_bb builder;
+
+    (* Within the loop, the variable is defined equal to the PHI node. If it
+       shadows and existing variable, we have to restore it, so save it. *)
+    let old_val =
+      try Some (Hashtbl.find named_values var_name) with Not_found -> None
+    in
+    Hashtbl.add named_values var_name alloca;
+
+    (* Emit the body of the loop. This can change the current BB. Note that we
+       ignore the value computed by the body, but don't allow an error. *)
+    let body_vals = Array.map (fun i -> codegen_expr i) body in
+
+    (* Step value; may change later *)
+    let step_val = const_int int_type 1 in
+
+    (* Compute end condition *)
+    let end_cond = codegen_expr end_val in
+
+    (* Reload, increment, and restore the alloca. Accounts for when the
+       loop body mutates the variable. *)
+    let cur_val = build_load alloca var_name builder in
+    let next_var = build_add cur_val step_val "nextvar" builder in
+    ignore (build_store next_var alloca builder);
+
+    (* Comparison against end condition. *)
+    let end_cond = build_icmp Icmp.Eq cur_val end_cond "loopcnd" builder in
+
+    (* Create the "after loop" block and insert it. *)
+    let after_bb = append_block context "afterloop" the_function in
+
+    (* Insert the conditional branch into the end of loop_end_bb. *)
+    ignore (build_cond_br end_cond loop_bb after_bb builder);
+
+    (* Any new code inserted in after_bb. *)
+    position_at_end after_bb builder;
+
+    (* Restore the unshadowed variable. *)
+    begin match old_val with
+    | Some old_val -> Hashtbl.add named_values var_name old_val
+    | None -> ()
+    end;
+
+    (* for expression returns the last value of the loop variable *)
+    cur_val
+
   | Ast.If (cond, then_expr, else_expr) ->
     let cond = codegen_expr cond in
 
