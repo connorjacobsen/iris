@@ -155,6 +155,20 @@ let rec codegen_expr = function
       | '%' -> mod_op lhs_val rhs_val
       | _ -> raise (Error "invalid infix operator")
     end
+  | Ast.Call (callee, args) ->
+    (* Lookup name in module. *)
+    let callee =
+      match lookup_function callee the_module with
+      | Some callee -> callee
+      | None -> raise (Error ("Unknown function: " ^ callee))
+    in
+    let params = params callee in
+
+    (* Check for arity mismatch. *)
+    if Array.length params == Array.length args then () else
+      raise (Error (Printf.sprintf "wrong number of args passed: %d for %d" (Array.length args) (Array.length params)));
+    let args = (Array.map (fun i -> codegen_expr i) args) in
+    build_call callee args "calltmp" builder
   | Ast.For (var_name, start, end_val, body) ->
     let the_function = block_parent (insertion_block builder) in
 
