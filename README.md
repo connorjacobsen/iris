@@ -91,7 +91,7 @@ It can be useful to symlink some of the LLVM tools:
 $ sudo ln -s /usr/local/Cellar/llvm/3.6.1/bin/llc /usr/bin/llc
 ```
 
-This will be needed by the `irisc` bash script.
+This will be needed by the `iris` bash script.
 
 ## Contributing
 
