@@ -95,4 +95,6 @@ This will be needed by the `irisc` bash script.
 
 ## Contributing
 
-This repo is part of my senior project, so unfortunately I cannot accept code contributions until the end of the semester. However, comments, thoughts, and concerns are more than welcome. Please leave any comments in an issue or contact me personally. I will amend this section once the semester concludes.
+Contributions to Iris are welcomed and encouraged!
+
+I am currently working on a development roadmap which will help layout potentially impactful contributions. Currently, any contributions which implement the [language spec](SPECIFICATION.md) are especially welcome.
