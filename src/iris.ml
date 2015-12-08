@@ -61,16 +61,13 @@ let validate_and_optimize f =
 (* Run a function *)
 let run_f f =
   let ty = Foreign.funptr (void @-> returning (ptr_opt cvalue_t)) in
-  Printf.fprintf stdout "Visited A\n";
-  flush stdout;
   let mainf = get_function_address (value_name f) ty the_execution_engine in
-  Printf.fprintf stdout "Visited B\n";
-  flush stdout;
   let cptr = mainf () in
-  Printf.fprintf stdout "Visited C\n";
-  flush stdout;
   match cptr with
-  | None -> IrisUnit (* raise error *)
+  | None ->
+    Printf.fprintf stdout "No value!\n";
+    flush stdout;
+    IrisUnit (* raise error *)
   | Some p ->
     Printf.fprintf stdout "Visited D\n";
     flush stdout;
@@ -132,22 +129,36 @@ let main_loop ast =
   List.iter (fun fn -> validate_and_optimize fn) tlexprs;
 
   (* Execute code *)
-  (* List.iter (fun expr ->
+  (* List.iter (fun f ->
     print_string "Evaluated to: ";
     flush stdout;
-    Box.print_value (run_f expr);
+    print_value (run_f f);
     print_newline ()
-  ) tlexprs; *)
+  ) fns; *)
+
+  (* lookup the main function and run it. *)
+  (* let main_fn = lookup_function "main" the_module in
+  match main_fn with
+  | Some f ->
+    print_string "Evaluated to: ";
+    flush stdout;
+    print_value (run_f f);
+    print_newline ();
+    flush stdout
+  | None -> raise (Error "No function named `main` found.\n") *)
 
   (* dump all of the generated code *)
-  dump_module Codegen.the_module;
-  flush stdout
+  (* dump_module Codegen.the_module;
+  flush stdout *)
+  Llvm_bitwriter.write_bitcode_file the_module "output.ll";
+  ()
 
 let main () =
   let filebuf = Lexing.from_channel stdin in
   try
     let ast = Parser.main Lexer.read filebuf in
-    main_loop ast
+    main_loop ast;
+    ()
   with
   | Lexer.Error msg ->
     Printf.eprintf "%s%!" msg;

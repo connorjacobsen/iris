@@ -298,8 +298,6 @@ let rec codegen_expr = function
     let v = try Hashtbl.find named_values id with
       | Not_found -> raise (Error ("unknown variable name: " ^ id))
     in
-    Printf.fprintf stdout "Variable to load: %s\n" id;
-    flush stdout;
     (* Load the value from the stack *)
     build_load v id builder
   (* treat the same for now *)
@@ -336,8 +334,6 @@ let rec codegen_expr = function
 
 let codegen_proto = function
   | Ast.Prototype (name, args, types, ret_ty) ->
-    Printf.fprintf stdout "Name: %s, Return type: %s\n" name ret_ty;
-    flush stdout;
     let param_arr = Array.make (Array.length args) int_type in
     for i = 0 to Array.length args - 1 do
       param_arr.(i) <- (iris_type_from_string types.(i))

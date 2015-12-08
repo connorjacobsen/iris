@@ -82,9 +82,7 @@ expr_list:
 
 def:
 | LET id = IDENT ASSIGN e = expr
-  { Printf.fprintf stdout "Var: %s\n" id;
-    flush stdout;
-    Ast.Def (id, e) }
+  { Ast.Def (id, e) }
 | LET MUT id = IDENT ASSIGN e = expr
   { Ast.Mut (id, e) }
 ;
@@ -92,8 +90,6 @@ def:
 func:
 | FN id = IDENT COLON ret_ty = ty_simple LBRACKET body = expr_list RBRACKET
   {
-    Printf.fprintf stdout "Name: %s, ReturnType: %s\n" id ret_ty;
-    flush stdout;
     let proto = Ast.Prototype (id, [| |], [| |], ret_ty) in
     Ast.Function (proto, (Array.of_list body))
   }
@@ -171,9 +167,7 @@ simple_expr:
 | LPAREN e = expr RPAREN
   { e }
 | id = IDENT
-  { Printf.fprintf stdout "Found Ident: %s\n" (Ast.name_to_string id);
-    flush stdout;
-    Ast.Id id }
+  { Ast.Id id }
 ;
 
 /* Int

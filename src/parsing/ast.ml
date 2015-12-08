@@ -60,3 +60,6 @@ type expr =
 
   (* control flow *)
   | If of expr * expr array * expr array
+
+(** Generate LLVM function. *)
+type tlexpr = GeneratedFunction of Llvm.llvalue
