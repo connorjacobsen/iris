@@ -7,7 +7,8 @@ BUILDSRCDIR = $(BUILDDIR)/src
 SRCDIR = $(ROOT)/src
 
 LLVM_PACKAGES = -package llvm -package llvm.analysis -package llvm.target \
-		-package llvm.executionengine -package llvm.scalar_opts
+		-package llvm.executionengine -package llvm.scalar_opts \
+		-package llvm.bitwriter
 CTYPES = -pkg ctypes.foreign
 LIBBOX = -lflag $(BUILDSRCDIR)/libbox.a
 
