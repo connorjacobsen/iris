@@ -71,6 +71,8 @@ rule read = parse
   | "else" { ELSE }
   | "then" { THEN }
   | "end" { END }
+  | "for" { FOR }
+  | "in" { IN }
   | ident as sval { IDENT sval }
   | tyname as sval { TTYPE sval }
   | eof { EOF }

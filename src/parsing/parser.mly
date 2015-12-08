@@ -38,6 +38,7 @@
 %token ASSIGN
 %token SEMICOLON COLON COMMA
 %token IF THEN ELSE END
+%token FOR IN
 %token LPAREN RPAREN LBRACKET RBRACKET
 %token EOF
 
@@ -149,6 +150,8 @@ expr:
   { Ast.Binary ('%', e1, e2) }
 | IF cond = expr THEN e1 = expr_list ELSE e2 = expr_list END
   { Ast.If (cond, (Array.of_list e1), (Array.of_list e2)) }
+| FOR id = IDENT IN e1 = expr TO e2 = expr LBRACKET body = expr_list RBRACKET
+  { Ast.For (id, e1, e2, (Array.of_list body)) }
 ;
 
 simple_expr:

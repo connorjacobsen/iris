@@ -44,6 +44,10 @@ type expr =
   | Def of name * expr  (** definition of immutable binding *)
   | Mut of name * expr  (** definition of mutable binding *)
 
+  (* name is the variable name, the expressions are the starting and
+     ending range values, with the expr array being the loop body *)
+  | For of name * expr * expr * expr array
+
   (* function call *)
   | Call of string * expr array
   (* Function definition *)
