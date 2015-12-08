@@ -14,17 +14,17 @@ Make sure that the iris.native binary has been built, and that the `llc` tool is
 $ make clean && make
 ```
 
-And then run the `irisc` script with your iris source file:
+And then run the `iris` script with your iris source file:
 
 ```bash
-$ ./irisc hello_world.iris
+$ ./iris hello_world.iris
 ```
 
 This script will generate an executable named `output` in the current working directory.
 
-*Note: May need to change the permissions on the irisc script.*
+*Note: May need to change the permissions on the iris script.*
 
-To compile without the `irisc` script, and to choose the name for your executable:
+To compile without the `iris` script, and to choose the name for your executable:
 
 ```bash
 ./iris.native my_file.iris # will always dump to output.ll
