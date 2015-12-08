@@ -54,19 +54,22 @@
 
 /* Calculated results are accumulated in an OCaml int list */
 main:
-| EOF
-  { [] }
-| stmt = statement EOF
-  { [stmt]  }
-| stmt = statement m = main
-  { stmt :: m }
+| stmt_list = statement_list_ety EOF { stmt_list }
 ;
+
+statement_list_ety: { [] }
+| stmt_list = statement_list { stmt_list }
+
+statement_list:
+| stmt = statement SEMICOLON { [stmt] }
+| stmt_list = statement_list stmt = statement SEMICOLON
+  { stmt_list @ [stmt] }
 
 /* For now, expressions end with a semicolon. Later they will end with a newline. */
 statement:
 | f = func
   { f }
-| e = expr SEMICOLON
+| e = expr
   { e }
 ;
 
