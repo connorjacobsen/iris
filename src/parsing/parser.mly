@@ -139,6 +139,8 @@ expr:
   { d }
 | e = simple_expr
   { e }
+| id = IDENT LPAREN args = arglist_ety RPAREN
+  { Ast.Call (id, (Array.of_list args)) }
 | MINUS e = expr %prec UMINUS
   { Ast.Unary ('-', e) }
 | e1 = expr PLUS e2 = expr
@@ -183,3 +185,10 @@ ty_simple:
 | LPAREN RPAREN
   { "Unit" }
 ;
+
+arglist_ety: { [] }
+| args = arglist { args }
+
+arglist:
+| e = expr { [e] }
+| args = arglist COMMA e = expr { args @ [e] }

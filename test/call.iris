@@ -3,5 +3,7 @@ fn addOne(x:Int) : Int {
 };
 
 fn main : Int {
+  addOne(41);
+  
   0
 };
