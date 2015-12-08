@@ -3,4 +3,4 @@ fn main : Int {
   for i in 0 to x {
     i
   }
-}
+};

@@ -1,0 +1,7 @@
+fn addOne(x:Int) : Int {
+  x + 1
+};
+
+fn main : Int {
+  0
+};
