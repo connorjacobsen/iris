@@ -38,7 +38,7 @@
 %token ASSIGN
 %token SEMICOLON COLON COMMA
 %token IF THEN ELSE END
-%token FOR IN
+%token FOR IN TO
 %token LPAREN RPAREN LBRACKET RBRACKET
 %token EOF
 
