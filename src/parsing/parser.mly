@@ -109,25 +109,17 @@ param_list_ety: { [] }
 ;
 
 param_list:
-/*| p = param
-  { match p with | None -> [] | Some pp -> [pp] }
-| p = param COMMA pl = param_list
-  { match p with
-    | None -> [] @ pl
-    | Some pp -> [pp] @ pl }*/
-  | p = param
-    { match p with | None -> [] | Some pp -> [pp] }
-  | pl = param_list COMMA p = param
-    { match p with
-      | None -> pl
-      | Some pp -> pl @ [pp] }
+| p = param
+  { [p] }
+| pl = param_list COMMA p = param
+  { p :: pl }
 ;
 
-param: { None }
+param:
 /* a:Int
    b:() */
 | id = IDENT COLON ty = ty_simple
-  { Some (id,ty) }
+  { (id,ty) }
 ;
 
 expr:
