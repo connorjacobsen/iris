@@ -1,0 +1,6 @@
+#!/bin/bash
+./iris.native < $1 # build output.ll
+llc output.ll
+clang -c output.s
+clang -o output output.o
+rm output.ll output.s output.o
