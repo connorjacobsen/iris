@@ -53,6 +53,12 @@ external unbox_value: 'a -> iris_value = "unbox_value"
 let unbox_value value =
   Printf.fprintf stdout "Visited E\n";
   flush stdout;
+
+  getf value iris_type;
+
+  Printf.fprintf stdout "Visited EE\n";
+  flush stdout;
+
   let t = Int32.to_int (getf value iris_type) in
   Printf.fprintf stdout "Visited F\n";
   flush stdout;

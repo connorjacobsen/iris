@@ -57,8 +57,8 @@ struct value_t {
   bool bool_val;      /* Iris Bool value */
   char char_val;      /* Iris Char value */
 
-  /* Iris Function value */
-  struct value_t *(*function_val)(struct value_t *);
+  // /* Iris Function value */
+  // struct value_t *(*function_val)(struct value_t *);
 };
 
 char
