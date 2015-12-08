@@ -1,0 +1,11 @@
+fn plusOne(a:Int) : Int {
+  let x = 1;
+  a + x
+};
+
+fn main : Int {
+  let x = 7;
+  let y = plusOne(x);
+
+  2
+};
