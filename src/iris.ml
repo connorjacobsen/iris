@@ -81,23 +81,6 @@ let top_level_expr tlexpr =
   match tlexpr with
   | Ast.Def (name, expr) | Ast.Mut (name, expr) ->
     let the_function = anonymous_function_gen [| expr |] in
-    (* let bb = append_block context "entry" the_function in
-    Printf.fprintf stdout "Made it A\n";
-    flush stdout;
-    position_at_end bb builder;
-    Printf.fprintf stdout "Made it B\n";
-    flush stdout;
-    let llexpr = codegen_expr expr in
-    Printf.fprintf stdout "Built expression\n";
-    flush stdout;
-    dump_module the_module;
-    flush stdout;
-    let llexpr = build_load llexpr name builder in
-    Printf.fprintf stdout "Built load\n";
-    flush stdout;
-    let global = define_global name llexpr the_module in
-    ignore (build_store llexpr global builder);
-    ignore (build_ret llexpr builder); *)
     the_function
   | Ast.Function (proto, body) -> codegen_func (Ast.Function (proto, body))
   (* | Call (name, args) -> *)
@@ -122,30 +105,9 @@ let main_loop ast =
 
   ignore (PassManager.initialize the_fpm);
 
-  (* may need to generate IR code here *)
-
   (* Recurse through the AST and generate top level expressions *)
   let tlexprs = List.map (fun expr -> top_level_expr expr) ast in
   List.iter (fun fn -> validate_and_optimize fn) tlexprs;
-
-  (* Execute code *)
-  (* List.iter (fun f ->
-    print_string "Evaluated to: ";
-    flush stdout;
-    print_value (run_f f);
-    print_newline ()
-  ) fns; *)
-
-  (* lookup the main function and run it. *)
-  (* let main_fn = lookup_function "main" the_module in
-  match main_fn with
-  | Some f ->
-    print_string "Evaluated to: ";
-    flush stdout;
-    print_value (run_f f);
-    print_newline ();
-    flush stdout
-  | None -> raise (Error "No function named `main` found.\n") *)
 
   (* dump all of the generated code *)
   (* dump_module Codegen.the_module;
