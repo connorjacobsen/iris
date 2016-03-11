@@ -38,6 +38,6 @@ val run_f: Llvm.llvalue -> Box.iris_value
 
 val top_level_expr: Ast.expr -> Llvm.llvalue
 
-val main_loop: Ast.expr list -> unit
+val main_loop: Ast.expr list -> bool -> unit
 
 val main: unit -> unit

@@ -87,7 +87,7 @@ let top_level_expr tlexpr =
   | _ -> raise (Error "Invalid top level expression")
 
 
-let main_loop ast =
+let main_loop ast dump_ir =
   (* Promote allocas to registers *)
   add_memory_to_register_promotion the_fpm;
 
@@ -112,14 +112,24 @@ let main_loop ast =
   (* dump all of the generated code *)
   (* dump_module Codegen.the_module;
   flush stdout *)
-  Llvm_bitwriter.write_bitcode_file the_module "output.ll";
-  ()
+  match dump_ir with
+  | true ->
+    dump_module Codegen.the_module;
+    flush stdout
+  | false ->
+    Llvm_bitwriter.write_bitcode_file the_module "output.ll";
+    ()
 
 let main () =
+  let usage_msg = "" in
+  let dump_ir = ref false in
+  let speclist = [("-ir", Arg.Set dump_ir, "Dumps generated IR code")] in
+    Arg.parse speclist print_endline usage_msg;
+
   let filebuf = Lexing.from_channel stdin in
   try
     let ast = Parser.main Lexer.read filebuf in
-    main_loop ast;
+    main_loop ast !dump_ir;
     ()
   with
   | Lexer.Error msg ->
