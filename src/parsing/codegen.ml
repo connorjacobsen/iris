@@ -29,9 +29,11 @@ let context = global_context ()
 let the_module = create_module context "iris"
 let builder = builder context
 
-(* symbol table *)
-let named_values:(string, llvalue) Hashtbl.t = Hashtbl.create 10
+(* Environment declarations. *)
+let global_env = Env.create None
+let current_env = ref global_env
 
+(* Type declarations. *)
 let int_type = i32_type context
 let float_type = double_type context
 let bool_type = i1_type context
@@ -89,7 +91,8 @@ let create_argument_allocas the_function proto =
     ignore(build_store ai alloca builder);
 
     (* Add args to the symbol table. *)
-    Hashtbl.add named_values name alloca;
+    (* Args to functions are passed as immutable copies. *)
+    Env.add_const !current_env name [] alloca;
   ) (params the_function)
 
 (* Should clean these up at some point *)
@@ -195,9 +198,9 @@ let rec codegen_expr = function
     (* Within the loop, the variable is defined equal to the PHI node. If it
        shadows and existing variable, we have to restore it, so save it. *)
     let old_val =
-      try Some (Hashtbl.find named_values var_name) with Not_found -> None
+      try Some (Env.find !current_env var_name) with Not_found -> None
     in
-    Hashtbl.add named_values var_name alloca;
+    Env.add_var !current_env var_name [] alloca;
 
     (* Emit the body of the loop. This can change the current BB. Note that we
        ignore the value computed by the body, but don't allow an error. *)
@@ -229,7 +232,7 @@ let rec codegen_expr = function
 
     (* Restore the unshadowed variable. *)
     begin match old_val with
-    | Some old_val -> Hashtbl.add named_values var_name old_val
+    | Some old_val -> Env.add_var !current_env var_name [] old_val.value
     | None -> ()
     end;
 
@@ -295,11 +298,11 @@ let rec codegen_expr = function
 
     phi
   | Ast.Id id ->
-    let v = try Hashtbl.find named_values id with
+    let v = try Env.find_exn !current_env id with
       | Not_found -> raise (Error ("unknown variable name: " ^ id))
     in
     (* Load the value from the stack *)
-    build_load v id builder
+    build_load v.value id builder
   (* treat the same for now *)
   | Ast.Def (id, value) | Ast.Mut (id, value) ->
     let old_bindings = ref [] in
@@ -314,19 +317,19 @@ let rec codegen_expr = function
        when we unrecurse. *)
     begin
       try
-        let old_value = Hashtbl.find named_values id in
-        old_bindings := (id, old_value) :: !old_bindings
+        let old_value = Env.find_exn !current_env id in
+        old_bindings := (id, old_value.value) :: !old_bindings
       with Not_found -> ()
     end;
 
     (* Remember this binding *)
-    Hashtbl.add named_values id alloca;
+    Env.add_var !current_env id [] alloca;
 
     (* All vars are in scope, now codegen the body *)
     let body_val = codegen_expr value in
     (* Pop all our variables from scope. *)
     List.iter (fun (name, old_value) ->
-      Hashtbl.add named_values name old_value
+      Env.add_var !current_env name [] old_value
     ) !old_bindings;
 
     (* Return the body computation. *)
@@ -353,14 +356,13 @@ let codegen_proto = function
     Array.iteri (fun i a ->
       let n = args.(i) in
       set_value_name n a;
-      (* Symtbl.add n [types.(i)] (Some a); *)
-      Hashtbl.add named_values n a;
+      Env.add_const !current_env n [] a;
     ) (params f);
     f
 
 let codegen_func = function
   | Ast.Function (proto, body) ->
-    Hashtbl.clear named_values;
+    Env.clear !current_env;
     let the_function = codegen_proto proto in
 
     let bb = append_block context "entry" the_function in

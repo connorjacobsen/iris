@@ -109,9 +109,7 @@ let main_loop ast dump_ir =
   let tlexprs = List.map (fun expr -> top_level_expr expr) ast in
   List.iter (fun fn -> validate_and_optimize fn) tlexprs;
 
-  (* dump all of the generated code *)
-  (* dump_module Codegen.the_module;
-  flush stdout *)
+  (* Dump or write generated code. *)
   match dump_ir with
   | true ->
     dump_module Codegen.the_module;
@@ -121,7 +119,7 @@ let main_loop ast dump_ir =
     ()
 
 let main () =
-  let usage_msg = "" in
+  let usage_msg = "The iris compiler" in
   let dump_ir = ref false in
   let speclist = [("-ir", Arg.Set dump_ir, "Dumps generated IR code")] in
     Arg.parse speclist print_endline usage_msg;
