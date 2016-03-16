@@ -1,4 +1,4 @@
 fn main : Int {
   let x = 42;
-  printf(x)
+  printf("%d\n", x)
 };
