@@ -37,6 +37,7 @@ let current_env = ref global_env
 let int_type = i32_type context
 let float_type = double_type context
 let bool_type = i1_type context
+let byte_type = i8_type context
 
 let int_of_bool = function
   | false -> 0

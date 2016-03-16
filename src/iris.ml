@@ -126,6 +126,7 @@ let main () =
 
   let filebuf = Lexing.from_channel stdin in
   try
+    Builtin.load ();
     let ast = Parser.main Lexer.read filebuf in
     main_loop ast !dump_ir;
     ()

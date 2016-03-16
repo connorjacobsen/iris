@@ -1,6 +1,6 @@
 (* The MIT License (MIT)
  *
- * Copyright (c) 2015 Connor Jacobsen
+ * Copyright (c) 2015-2016 Connor Jacobsen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,10 +24,22 @@
 open Llvm
 open Codegen
 
+let rec print_type llty =
+  let ty = Llvm.classify_type llty in
+  match ty with
+  | Llvm.TypeKind.Function -> Printf.printf "function\n"
+  | Llvm.TypeKind.Pointer  ->
+      Printf.printf "pointer to ";
+      print_type (Llvm.element_type llty)
+  | _ -> Printf.printf "other type\n"
+
 let declare_printf () =
-  let i8_t = i8_type context in
-  let i32_t = i32_type context in
-  let printf_ty = var_arg_function_type i32_t [| pointer_type i8_t |] in
+  let printf_ty = var_arg_function_type int_type [| pointer_type byte_type |] in
   let printf = declare_function "printf" printf_ty the_module in
   add_function_attr printf Attribute.Nounwind;
   add_param_attr (param printf 0) Attribute.Nocapture;
+  ()
+
+let load () =
+  declare_printf ();
+  ()
