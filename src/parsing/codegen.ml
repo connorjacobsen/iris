@@ -38,6 +38,7 @@ let int_type = i32_type context
 let float_type = double_type context
 let bool_type = i1_type context
 let byte_type = i8_type context
+let void_type = void_type context
 
 let int_of_bool = function
   | false -> 0
@@ -98,51 +99,31 @@ let create_argument_allocas the_function proto =
   ) (params the_function)
 
 (* Should clean these up at some point *)
+let op_fn lhs int_fn float_fn op_name =
+  match classify_type (type_of lhs) with
+  | TypeKind.Integer -> int_fn
+  | TypeKind.Double  -> float_fn
+  | _ -> raise (Error (Printf.sprintf "Type error on %s!" op_name))
 
 let add_op lhs rhs =
-  let ty = classify_type (type_of lhs) in
-  match ty with
-  | TypeKind.Integer ->
-    build_add lhs rhs "addtmp" builder
-  | TypeKind.Double ->
-    build_fadd lhs rhs "addtmp" builder
-  | _ -> raise (Error "Type error on add!")
+  let add_fn = op_fn lhs build_add build_fadd "add" in
+  add_fn lhs rhs "addtmp" builder
 
 let sub_op lhs rhs =
-  let ty = classify_type (type_of lhs) in
-  match ty with
-  | TypeKind.Integer ->
-    build_sub lhs rhs "subtmp" builder
-  | TypeKind.Double ->
-    build_fsub lhs rhs "subtmp" builder
-  | _ -> raise (Error "Type error on sub!")
+  let sub_fn = op_fn lhs build_sub build_fsub "sub" in
+  sub_fn lhs rhs "subtmp" builder
 
 let mul_op lhs rhs =
-  let ty = classify_type (type_of lhs) in
-  match ty with
-  | TypeKind.Integer ->
-    build_mul lhs rhs "multmp" builder
-  | TypeKind.Double ->
-    build_fmul lhs rhs "multmp" builder
-  | _ -> raise (Error "Type error on mul!")
+  let mul_fn = op_fn lhs build_mul build_fmul "mul" in
+  mul_fn lhs rhs "multmp" builder
 
 let div_op lhs rhs =
-  let ty = classify_type (type_of lhs) in
-  match ty with
-  | TypeKind.Integer ->
-    build_sdiv lhs rhs "divtmp" builder
-  | TypeKind.Double ->
-    build_fdiv lhs rhs "divtmp" builder
-  | _ -> raise (Error "Type error on div!")
+  let div_fn = op_fn lhs build_sdiv build_fdiv "div" in
+  div_fn lhs rhs "divtmp" builder
 
 let mod_op lhs rhs =
-  let ty = classify_type (type_of lhs) in
-  match ty with
-  | TypeKind.Integer ->
-    build_srem lhs rhs "modtmp" builder
-  | TypeKind.Double ->
-    build_frem lhs rhs "modtmp" builder
-  | _ -> raise (Error "Type error on div!")
+  let mod_fn = op_fn lhs build_srem build_frem "mod" in
+  mod_fn lhs rhs "modtmp" builder
 
 let rec codegen_expr = function
   | Ast.Int i -> const_int int_type i
