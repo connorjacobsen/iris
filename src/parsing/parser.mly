@@ -36,10 +36,10 @@
 %token PLUS MINUS TIMES DIV MOD
 %token LET MUT FN
 %token ASSIGN
-%token SEMICOLON COLON COMMA
+%token SEMICOLON COLON COMMA PIPE
 %token IF THEN ELSE END
 %token FOR IN TO
-%token LPAREN RPAREN LBRACKET RBRACKET
+%token LPAREN RPAREN LBRACKET RBRACKET LBRACE RBRACE
 %token EOF
 
 /* Lowest precedence */
@@ -160,6 +160,15 @@ simple_expr:
   { e }
 | id = IDENT
   { Ast.Id id }
+| arr = array_literal
+  { arr }
+;
+
+array_literal:
+| LBRACE PIPE PIPE RBRACE
+  { Ast.Array (0, [||]) }
+| LBRACE PIPE el = expr_list PIPE RBRACE
+  { Ast.Array ( List.length el, Array.of_list el) }
 ;
 
 /* Int

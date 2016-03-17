@@ -44,6 +44,8 @@ let generate_name =
 let anonymous_function_gen body =
   let last_expr = body.((Array.length body) - 1) in
   let ty = string_of_iris_expr last_expr in
+  Printf.fprintf stdout "Func type: %s\n" ty;
+  flush stdout;
   let the_function =
     let name = generate_name () in
     let proto = Ast.Prototype(name, [| |], [| |], ty) in

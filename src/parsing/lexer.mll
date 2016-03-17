@@ -62,7 +62,10 @@ rule read = parse
   | ')' { RPAREN }
   | '{' { LBRACKET }
   | '}' { RBRACKET }
+  | '[' { LBRACE }
+  | ']' { RBRACE }
   | ',' { COMMA }
+  | '|' { PIPE }
   | "let" { LET }
   | "mut" { MUT }
   | "fn" { FN }

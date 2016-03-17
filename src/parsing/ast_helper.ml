@@ -28,3 +28,9 @@ let rec string_of_iris_expr = function
   | Ast.Char _ -> "Char"
   | Ast.Unit -> "Unit"
   | Ast.Binary (_, x, y) -> string_of_iris_expr x
+  | Ast.Array (len, elements) ->
+    if Array.length elements > 1 then
+      "[" ^ string_of_iris_expr elements.(0) ^ "]"
+    else
+      "[0]"
+  | _ -> ""

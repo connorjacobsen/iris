@@ -60,6 +60,7 @@ let string_of_iris_type = function
   | int_type -> "Int"
   | float_type -> "Float"
   | bool_type -> "Bool"
+  | byte_type -> "Byte"
   | _ -> raise (Error ("Unknown type"))
 
 (* Needs refactoring *)
@@ -335,6 +336,19 @@ let rec codegen_expr = function
 
     (* Return the body computation. *)
     body_val
+  | Ast.Array (len, elements) ->
+    let llelements = Array.map (fun el ->
+      codegen_expr el
+    ) elements
+    in
+      let arr_ty =
+        match len with
+        | 0 -> byte_type
+        | _ ->
+          let el = llelements.(0) in
+          type_of el
+      in
+        const_array arr_ty llelements
 
 let codegen_proto = function
   | Ast.Prototype (name, args, types, ret_ty) ->

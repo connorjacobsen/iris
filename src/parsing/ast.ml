@@ -61,5 +61,12 @@ type expr =
   (* control flow *)
   | If of expr * expr array * expr array
 
+  (** Compound types. *)
+  (* size and expressions *)
+  | Array of int * expr array
+  (* Tuple *)
+  | Tuple of int * expr array
+  | Struct (* need more info *)
+
 (** Generate LLVM function. *)
 type tlexpr = GeneratedFunction of Llvm.llvalue
