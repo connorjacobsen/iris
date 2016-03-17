@@ -29,9 +29,11 @@ type t =
   | Char
   | Int
   | Float
-  | Fun of t list * t (* eventually change to curry args *)
+  | Fun of t list
   | Tuple of t list
   | List of t
+  | Array of t * int (* int is Array length *)
+  | Struct of t list * string list (* types and names *)
 
 open Printf
 
@@ -48,8 +50,14 @@ let rec to_string t =
   | Int -> "Int"
   | Float -> "Float"
   | Fun (tys, ret_ty) -> sprintf "Fun(%a) : %a" to_strings tys to_string ty_ret
-  | Tuple tys -> sprintf "Tuple(%a)" to_strings tys
-  | List ty -> sprintf "[%ty]" to_string ty
+  | Tuple tys -> sprintf "(%a)" to_strings tys
+  | List ty -> sprintf "[%s]" to_string ty
+  | Array (ty, len) -> sprintf "[%d]%s" len (to_string ty)
+  | Struct (tys, names) ->
+    let pairs = List.map2 (fun (ty, name) ->
+      sprintf "%s %s" name ty
+    ) tys names in
+    sprintf "{" ^ String.concat ", " pairs ^ "}"
 and to_strings tys = list_to_string to_string ", " tys
 
 (** Generate the correct LLVM representation for the Iris type.
