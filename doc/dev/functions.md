@@ -8,7 +8,7 @@ Table of Contents:
 Consider the following example:
 
 ```
-module bar
+# bar.iris
 
 fn foo(a: Int, b: Int) { ... }
 ```
@@ -26,3 +26,5 @@ _IF_bar_foo_Int_Int
 `foo` in the name of the function.
 
 `Int_Int` tells us that the function accepts two arguments, both of type `Int`.
+
+*Note: functions named `main` WILL NOT be mangled.*
