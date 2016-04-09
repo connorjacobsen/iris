@@ -52,7 +52,6 @@
 
 %%
 
-/* Calculated results are accumulated in an OCaml int list */
 main:
 | stmt_list = statement_list_ety EOF { stmt_list }
 ;
