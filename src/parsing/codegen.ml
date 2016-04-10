@@ -53,6 +53,14 @@ let lookupf_exn name =
   | Some v -> v
   | None -> raise (Error ("Unknown function: " ^ name))
 
+(* Mangles a symbol *)
+let mangle mod_name id name ty =
+  if name = "main" then
+    "main"
+  else
+    let ty_string = String.concat "_" (Array.to_list ty) in
+    Printf.sprintf "_I%s_%s_%s_%s" id mod_name name ty_string
+
 (* converts "Int" to iris_int_type, "()" to void_type, etc. *)
 let iris_type_from_string = function
   | "Int" -> int_type
