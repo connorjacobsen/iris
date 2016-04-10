@@ -144,6 +144,8 @@ expr:
   { Ast.If (cond, (Array.of_list e1), (Array.of_list e2)) }
 | FOR id = IDENT IN e1 = expr TO e2 = expr LBRACKET body = expr_list RBRACKET
   { Ast.For (id, e1, e2, (Array.of_list body)) }
+| e = expr LBRACE idx = expr RBRACE
+  { Ast.Index (e, idx) }
 ;
 
 simple_expr:
@@ -159,6 +161,13 @@ simple_expr:
   { e }
 | id = IDENT
   { Ast.Id id }
+| vec = vector_literal
+  { vec }
+;
+
+vector_literal:
+| lst = list_literal
+  { lst }
 | arr = array_literal
   { arr }
 ;
@@ -167,7 +176,14 @@ array_literal:
 | LBRACE PIPE PIPE RBRACE
   { Ast.Array (0, [||]) }
 | LBRACE PIPE el = expr_list PIPE RBRACE
-  { Ast.Array ( List.length el, Array.of_list el) }
+  { Ast.Array (List.length el, Array.of_list el) }
+;
+
+list_literal:
+| LBRACE RBRACE
+  { Ast.List (0, [||]) }
+| LBRACE el = expr_list RBRACE
+  { Ast.List (List.length el, Array.of_list el) }
 ;
 
 /* Int
