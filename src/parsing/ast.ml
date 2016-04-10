@@ -57,6 +57,7 @@ type expr =
   (* will eventually be replaced by functions *)
   | Binary of char * expr * expr
   | Unary of char * expr
+  | Index of expr * expr
 
   (* control flow *)
   | If of expr * expr array * expr array
@@ -64,6 +65,7 @@ type expr =
   (** Compound types. *)
   (* size and expressions *)
   | Array of int * expr array
+  | List of int * expr array
   (* Tuple *)
   | Tuple of int * expr array
   | Struct (* need more info *)

@@ -40,6 +40,9 @@ let bool_type = i1_type context
 let byte_type = i8_type context
 let void_type = void_type context
 
+(* Useful constants *)
+let zero = const_int int_type 0
+
 let int_of_bool = function
   | false -> 0
   | true -> 1
@@ -330,6 +333,20 @@ let rec codegen_expr = function
           type_of el
       in
         const_array arr_ty llelements
+  | Ast.List (len, elements) ->
+    let llelements = Array.map (fun el ->
+      codegen_expr el
+    ) elements
+    in
+    let ty = type_of llelements.(0) in
+    declare_global (array_type ty (Array.length llelements)) "arr" the_module
+  | Ast.Index (vec, idx) ->
+    let vec = codegen_expr vec in
+    let idx = codegen_expr idx in
+    let value = 
+      build_in_bounds_gep vec [| zero; idx |] "idxptr" builder
+    in
+      build_load value "idx" builder
 
 let codegen_proto = function
   | Ast.Prototype (name, args, types, ret_ty) ->

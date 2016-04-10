@@ -58,7 +58,8 @@ let validate_and_optimize f =
   (* Validate generated LLVM code *)
   Llvm_analysis.assert_valid_function f;
   (* Optimize function *)
-  ignore (PassManager.run_function f the_fpm)
+  (* ignore (PassManager.run_function f the_fpm) *)
+  ()
 
 (* Run a function *)
 let run_f f =
