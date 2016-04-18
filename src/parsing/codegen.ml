@@ -347,7 +347,8 @@ let rec codegen_expr = function
     ) elements
     in
     let ty = type_of llelements.(0) in
-    declare_global (array_type ty (Array.length llelements)) "arr" the_module
+    let arr_val = const_array ty llelements in
+    define_global "arr" arr_val the_module
   | Ast.Index (vec, idx) ->
     let vec = codegen_expr vec in
     let idx = codegen_expr idx in
