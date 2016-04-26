@@ -30,6 +30,7 @@
 
 %token <int> INT
 %token <float> FLOAT
+%token <string> STRING
 %token TRUE FALSE
 %token <Ast.name> IDENT
 %token <string> TTYPE
@@ -157,6 +158,8 @@ simple_expr:
   { Ast.Bool true }
 | FALSE
   { Ast.Bool false }
+| s = STRING
+  { Ast.String s }
 | LPAREN e = expr RPAREN
   { e }
 | id = IDENT

@@ -33,10 +33,11 @@ type proto = Prototype of string * string array * string array * string
 
 (* expr - Base type for all expression nodes *)
 type expr =
-  | Int of int      (** integer constant *)
-  | Float of float  (** float constant *)
-  | Bool of bool    (** boolean constant *)
-  | Char of char    (** character constant *)
+  | Int of int       (** integer constant *)
+  | Float of float   (** float constant *)
+  | Bool of bool     (** boolean constant *)
+  | Char of char     (** character constant *)
+  | String of string (** string constant *)
 
   | Unit
 

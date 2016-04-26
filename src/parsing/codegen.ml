@@ -140,6 +140,7 @@ let rec codegen_expr = function
   | Ast.Int i -> const_int int_type i
   | Ast.Bool b -> const_int bool_type (int_of_bool b)
   | Ast.Float f -> const_float float_type f
+  | Ast.String s -> const_stringz context s
   | Ast.Binary (op, lhs, rhs) ->
     let lhs_val = codegen_expr lhs in
     let rhs_val = codegen_expr rhs in
