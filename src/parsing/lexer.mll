@@ -1,6 +1,6 @@
 (* The MIT License (MIT)
 
-Copyright (c) 2015 Connor Jacobsen
+Copyright (c) 2015-2016 Connor Jacobsen
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -41,6 +41,7 @@ let uchar = ['A'-'Z']
 let sym = ['!' '@' '$' '%' '^' '&' '*' '_' '-' '+' '?' '|']
 let ident = lchar (lchar|uchar|sym)*
 let tyname = uchar (lchar|uchar)* '?'?
+let str = '"' _* '"'
 
 let white = [' ' '\t']+
 let newline = '\r' | '\n' | "\r\n"
@@ -50,6 +51,9 @@ rule read = parse
   | newline { read lexbuf }
   | int as ival { INT (int_of_string ival) }
   | float as fval { FLOAT (float_of_string fval) }
+  | str as sval {
+      STRING (String.sub sval 1 ((String.length sval) - 2))
+    }
   | ':' { COLON }
   | ';' { SEMICOLON }
   | '+' { PLUS }
